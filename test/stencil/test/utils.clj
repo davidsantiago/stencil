@@ -1,6 +1,6 @@
-(ns dali.test.utils
+(ns stencil.test.utils
   (:use clojure.test
-        dali.utils))
+        stencil.utils))
 
 (deftest test-html-escape
   (is (= "&lt;script&gt;"

@@ -1,4 +1,4 @@
-(ns dali.scanner
+(ns stencil.scanner
   "An old-fashioned string scanner."
   (:refer-clojure :exclude [peek])
   (:import java.util.regex.Matcher))

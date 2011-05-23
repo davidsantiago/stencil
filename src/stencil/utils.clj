@@ -1,4 +1,4 @@
-(ns dali.utils
+(ns stencil.utils
   (:require [clojure.string :as str]))
 
 (defn html-escape

@@ -1,11 +1,11 @@
-(ns dali.core
+(ns stencil.core
   (:require [clojure.string :as string]
-            [dali.loader :as loader])
-  (:use [dali.parser :exclude [partial]]
-        [dali.ast :rename {render node-render
+            [stencil.loader :as loader])
+  (:use [stencil.parser :exclude [partial]]
+        [stencil.ast :rename {render node-render
                            partial node-partial}]
         [clojure.java.io :only [resource]]
-        dali.utils))
+        stencil.utils))
 
 (declare render)
 (declare render-string)
@@ -18,7 +18,7 @@
 ;; just implement ASTNode for some of the ASTNode types here.
 
 (extend-protocol ASTNode
-  dali.ast.Section
+  stencil.ast.Section
   (render [this sb context-stack]
     (let [ctx-val (context-get context-stack (:name this))]
       (cond (or (not ctx-val) ;; "False" or the empty list -> do nothing.
@@ -42,7 +42,7 @@
             ;; Non-false non-list value -> Display content once.
             :else
             (node-render (:contents this) sb (conj context-stack ctx-val)))))
-  dali.ast.EscapedVariable
+  stencil.ast.EscapedVariable
   (render [this sb context-stack]
     (if-let [value (context-get context-stack (:name this))]
       (if (instance? clojure.lang.Fn value)
@@ -50,7 +50,7 @@
                                                 (first context-stack))))
         ;; Otherwise, just append its html-escaped value by default.
         (.append sb (html-escape value)))))
-  dali.ast.UnescapedVariable
+  stencil.ast.UnescapedVariable
   (render [this sb context-stack]
     (if-let [value (context-get context-stack (:name this))]
       (if (instance? clojure.lang.Fn value)

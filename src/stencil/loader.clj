@@ -1,9 +1,9 @@
-(ns dali.loader
+(ns stencil.loader
   (:refer-clojure :exclude [load])
   (:use [clojure.java.io :only [resource]]
-        [dali.parser :exclude [partial]]
-        [dali.ast :exclude [partial]]
-        dali.utils)
+        [stencil.parser :exclude [partial]]
+        [stencil.ast :exclude [partial]]
+        stencil.utils)
   (:import java.util.Date))
 
 ;; The dynamic template store just maps a template name to its source code.
@@ -175,7 +175,7 @@
 ;; to do, and jam it all into one huge file, we're going to just implement
 ;; ASTNode for Partial here.
 (extend-protocol ASTNode
-  dali.ast.Partial
+  stencil.ast.Partial
   (render [this sb context-stack]
     (let [padding (:padding this)
           template (if padding

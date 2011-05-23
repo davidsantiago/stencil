@@ -1,8 +1,8 @@
-(ns dali.ast
+(ns stencil.ast
   (:refer-clojure :exclude [partial])
   (:require [clojure.zip :as zip]
             [clojure.string :as string])
-  (:use dali.utils))
+  (:use stencil.utils))
 
 ;;
 ;; Data structures

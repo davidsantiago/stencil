@@ -1,6 +1,6 @@
-(ns dali.test.scanner
+(ns stencil.test.scanner
   (:use clojure.test
-        [dali.scanner :rename {peek peep}]))
+        [stencil.scanner :rename {peek peep}]))
 
 ;;
 ;; Information access tests.
@@ -9,15 +9,15 @@
 (deftest test-position
   (is (= 0 (position (scanner ""))))
   (is (= 0 (position (scanner "test"))))
-  (is (= 1 (position (dali.scanner.Scanner. "test" 1 nil)))))
+  (is (= 1 (position (stencil.scanner.Scanner. "test" 1 nil)))))
 
 (deftest test-beginning-of-line?
   (is (= true (beginning-of-line? (scanner ""))))
   (is (= true (beginning-of-line? (scanner "test"))))
   (is (= false (beginning-of-line?
-                (dali.scanner.Scanner. "test\r\ntest" 5 nil))))
+                (stencil.scanner.Scanner. "test\r\ntest" 5 nil))))
   (is (= true (beginning-of-line?
-               (dali.scanner.Scanner. "test\r\ntest" 6 nil)))))
+               (stencil.scanner.Scanner. "test\r\ntest" 6 nil)))))
 
 (deftest test-end?
   (is (= true (end? (scanner ""))))
@@ -26,8 +26,8 @@
 (deftest test-remainder
   (is (= "test" (remainder (scanner "test"))))
   (is (= "" (remainder (scanner ""))))
-  (is (= "" (remainder (dali.scanner.Scanner. "test" 4 nil))))
-  (is (= "" (remainder (dali.scanner.Scanner. "test" 5 nil)))))
+  (is (= "" (remainder (stencil.scanner.Scanner. "test" 4 nil))))
+  (is (= "" (remainder (stencil.scanner.Scanner. "test" 5 nil)))))
 
 (deftest test-groups
   (is (= ["m"]

@@ -1,8 +1,8 @@
-(ns dali.test.spec
+(ns stencil.test.spec
   (:use clojure.test
         [clojure.java.io :only [file]]
-        dali.core
-        [dali.loader :exclude [load]])
+        stencil.core
+        [stencil.loader :exclude [load]])
   (:require [clojure.contrib.json :as json]))
 
 (def spec-dir "test/spec")

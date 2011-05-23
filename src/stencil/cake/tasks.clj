@@ -1,4 +1,4 @@
-(ns dali.cake.tasks
+(ns stencil.cake.tasks
   (:use cake cake.core uncle.core
         [clojure.java.shell :only [sh]]
         [clojure.java.io :only [file]]

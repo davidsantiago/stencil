@@ -1,9 +1,9 @@
-(ns dali.test.parser
+(ns stencil.test.parser
   (:refer-clojure :exclude [partial])
   (:require [clojure.zip :as zip])
   (:use clojure.test
-        [dali ast parser utils]
-        [dali.scanner :rename {peek peep}]))
+        [stencil ast parser utils]
+        [stencil.scanner :rename {peek peep}]))
 
 (deftest test-get-line-col-from-index
   (is (= [1 1] (get-line-col-from-index "a\nb\nc" 0)))

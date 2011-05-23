@@ -1,4 +1,4 @@
-(ns dali.re-utils
+(ns stencil.re-utils
   "Some utility functions to make working with regular expressions easier."
   (:import java.util.regex.Pattern))
 

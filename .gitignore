@@ -5,5 +5,5 @@ pom.xml
 lib
 classes
 build
-/dali
+/stencil
 test/spec
