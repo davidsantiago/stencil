@@ -1,9 +1,16 @@
 (ns dali.parser
+  (:refer-clojure :exclude [partial])
   (:require [dali.scanner :as scan]
-            [clojure.zip :as zip])
+            [clojure.zip :as zip]
+            [clojure.string :as string])
   (:import java.util.regex.Pattern)
-  (:use dali.re-utils
+  (:use [dali ast re-utils utils]
+        clojure.pprint
         clojure.contrib.condition))
+
+;;
+;; Settings and defaults.
+;;
 
 ;; These tags, when used standalone (only content on a line, excluding
 ;; whitespace before the tag), will cause all whitespace to be removed from
@@ -36,7 +43,7 @@
 
 (defn parser
   ([scanner]
-     (parser scanner (zip/vector-zip [])))
+     (parser scanner (ast-zip [])))
   ([scanner output]
      (parser scanner output parser-defaults))
   ([scanner output state]
@@ -99,6 +106,17 @@
     (not= (scan/position (scan/scan s tag-open-re))
           (scan/position s))))
 
+(defn parse-tag-name
+  "This function takes a tag name (string) and parses it into a run-time data
+   structure useful during rendering of the templates. Following the rules of
+   mustache, it checks for a single \".\", which indicates the implicit
+   iterator. If not, it splits it on periods, returning a list of
+   the pieces. See interpolation.yml in the spec."
+  [^String s]
+  (if (= "." s)
+    :implicit-top
+    (string/split s #"\.")))
+
 (defn parse-text
   "Given a parser that is not in tag position, reads text until it is and
    appends it to the output of the parser."
@@ -126,19 +144,27 @@
               (write-string-to-output (:output p) text)
               state))))
 
+;; Grrr, I know this function is really long, but it's really simple. It's just
+;; parsing along a tag, and keeping hold of the scanner state at various steps.
+;; Then the logic at the bottom is fairly simple (modulo some logic for dealing
+;; with standalone tags everywhere), and uses the saved scanner states or the
+;; derived values. Whitespace rules cause a lot of complexity.
 (defn parse-tag
   "Given a parser that is in tag position, reads the next tag and appends it
    to the output of the parser with appropriate processing."
   [^Parser p]
   (let [{:keys [scanner output state]} p
         beginning-of-line? (scan/beginning-of-line? scanner)
+        tag-position-scanner scanner ;; Save the original scanner, might be used
+                                     ;; in closing tags to get source code.
         ;; Skip and save any leading whitespace.
         padding-scanner (scan/scan scanner
-                                   (re-concat #"([ \t]*)?"
-                                              (re-quote (:tag-open state))))
+                                   #"([ \t]*)?")
         padding (second (scan/groups padding-scanner))
+        tag-start-scanner (scan/scan padding-scanner
+                                     (re-quote (:tag-open state)))
         ;; Identify the sigil (and then eat any whitespace).
-        sigil-scanner (scan/scan padding-scanner
+        sigil-scanner (scan/scan tag-start-scanner
                                  #"#|\^|\/|=|!|<|>|&|\{")
         sigil (first (scan/matched sigil-scanner)) ;; first gets the char.
         sigil-scanner (scan/scan sigil-scanner #"\s*")
@@ -162,9 +188,9 @@
                                        (re-quote (closing-sigil sigil)))
         close-scanner (scan/scan tag-content-scanner
                                  (re-quote (:tag-close state)))
-        ;; Check if the newline comes right after... if this is a "standalone"
+        ;; Check if the line end comes right after... if this is a "standalone"
         ;; tag, we should remove the padding and newline.
-        trailing-newline-scanner (scan/scan close-scanner #"\r?\n")
+        trailing-newline-scanner (scan/scan close-scanner #"\r?\n|$")
         strip-whitespace? (and beginning-of-line?
                                (standalone-tag-sigils sigil)
                                (not (nil? (:match trailing-newline-scanner))))
@@ -188,31 +214,73 @@
     (case sigil
           (\{ \&) (parser scanner
                           (zip/append-child output
-                                            [:unescaped-variable tag-content])
+                                            (unescaped-variable
+                                             (parse-tag-name tag-content)))
                           state)
           \# (parser scanner
                      (-> output
-                         (zip/append-child [:section tag-content])
+                         (zip/append-child
+                          (section (parse-tag-name tag-content)
+                                   {:content-start
+                                    ;; Need to respect whether to strip white-
+                                    ;; space in the source.
+                                    (scan/position (if strip-whitespace?
+                                                     trailing-newline-scanner
+                                                     close-scanner))}
+                                   []))
                          zip/down zip/rightmost)
                      state)
           \^ (parser scanner
                      (-> output
-                         (zip/append-child [:inverted-section tag-content])
+                         (zip/append-child
+                          (inverted-section (parse-tag-name tag-content)
+                                            {:content-start
+                                             (scan/position
+                                              (if strip-whitespace?
+                                                trailing-newline-scanner
+                                                close-scanner))}
+                                            []))
                          zip/down zip/rightmost)
                      state)
           \/ (let [top-section (zip/node output)] ;; Do consistency checks...
-               (if (not= (second top-section) tag-content)
+               (if (not= (:name top-section) (parse-tag-name tag-content))
                  (raise :message (str "Attempt to close section out of order: "
                                       tag-content
                                       " at "
                                       (format-location tag-content-scanner)))
-                 ;; Otherwise, just close it by moving up the tree.
-                 (parser scanner (-> output zip/up) state)))
+                 ;; Going to close it by moving up the zipper tree, but first
+                 ;; we need to store the source code between the tags so that
+                 ;; it can be used in a lambda.
+                 (let [content-start (:content-start (-> output
+                                                         zip/node
+                                                         :attrs))
+                       ;; Where the content ends depends on whether we are
+                       ;; stripping whitespace from the current tag.
+                       content-end (scan/position (if strip-whitespace?
+                                                    tag-position-scanner
+                                                    padding-scanner))
+                       content (subs (:src scanner) content-start content-end)]
+                   (parser scanner
+                           ;; We need to replace the current zip node with
+                           ;; one with the attrs added to its attrs field.
+                           (-> output
+                               (zip/replace
+                                (assoc (zip/node output)
+                                  :attrs
+                                  (merge (:attrs (zip/node output))
+                                         {:content-end content-end
+                                          :content content})))
+                               zip/up)
+                           state))))
           ;; Just ignore comments.
           \! p
           (\> \<) (parser scanner
                           (-> output
-                              (zip/append-child [:partial tag-content]))
+                              ;; A standalone partial instead holds onto its
+                              ;; padding and uses it to indent its sub-template.
+                              (zip/append-child (partial tag-content
+                                                         (if strip-whitespace?
+                                                           padding))))
                           state)
           ;; Set delimiters only affect parser state.
           \= (let [[tag-open tag-close]
@@ -224,13 +292,13 @@
           ;; No sigil: it was an escaped variable reference.
           (parser scanner
                   (zip/append-child output
-                                    [:escaped-variable tag-content])
+                                    (escaped-variable (parse-tag-name
+                                                       tag-content)))
                   state))))
 
 (defn parse
   [template-string]
   (loop [p (parser (scan/scanner template-string))]
-    (println "parser state: " p)
     (let [s (:scanner p)]
       (cond
        ;; If we are at the end of input, return the output.

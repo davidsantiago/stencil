@@ -1,7 +1,8 @@
 (ns dali.test.parser
+  (:refer-clojure :exclude [partial])
   (:require [clojure.zip :as zip])
   (:use clojure.test
-        dali.parser
+        [dali ast parser utils]
         [dali.scanner :rename {peek peep}]))
 
 (deftest test-get-line-col-from-index
@@ -32,6 +33,12 @@
   (is (= false
          (tag-position? (scanner "Hi. {{test}}") parser-defaults))))
 
+(deftest test-parse-tag-name
+  (is (= ["test"]
+           (parse-tag-name "test")))
+  (is (= ["test" "test2"]
+           (parse-tag-name "test.test2"))))
+
 (deftest test-parse-text
   (is (= ["test string"]
            (zip/root (:output (parse-text (parser (scanner "test string")))))))
@@ -52,25 +59,25 @@
                                (parser (scanner "\ntest string\n{{tag}}"))))))))
 
 (deftest test-parse-tag
-  (is (= ["   " [:escaped-variable "blah"]]
+  (is (= ["   " (escaped-variable (parse-tag-name "blah"))]
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{blah}}")))))))
-  (is (= ["   " [:unescaped-variable "blah"]]
+  (is (= ["   " (unescaped-variable (parse-tag-name "blah"))]
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{{blah}}}")))))))
-  (is (= ["   " [:unescaped-variable "blah"]]
+  (is (= ["   " (unescaped-variable (parse-tag-name "blah"))]
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{{ blah}}}")))))))
-  (is (= ["   " [:unescaped-variable "blah"]]
+  (is (= ["   " (unescaped-variable (parse-tag-name "blah"))]
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{{ blah }}}")))))))
-  (is (= ["   " [:unescaped-variable "blah"]]
+  (is (= ["   " (unescaped-variable (parse-tag-name "blah"))]
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{&blah}}")))))))
-  (is (= ["   " [:unescaped-variable "blah"]]
+  (is (= ["   " (unescaped-variable (parse-tag-name "blah"))]
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{& blah}}")))))))
-  (is (= ["   " [:unescaped-variable "blah"]]
+  (is (= ["   " (unescaped-variable (parse-tag-name "blah"))]
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{& blah   }}")))))))
   ;; Test whitespace removal on a standalone tag.
