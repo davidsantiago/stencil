@@ -31,25 +31,10 @@
   ASTZipper
   (branch? [this] true)
   (children [this] contents)
-  (make-node [this children] (Section. name attrs (vec children)))
-  ASTNode
-  (render [this sb context-stack]
-    (let [ctx-val (context-get context-stack name)]
-      (cond (or (not ctx-val) ;; "False" or the empty list -> do nothing.
-                (and (sequential? ctx-val)
-                     (empty? ctx-val)))
-            nil
-            ;; Non-empty list -> Display content once for each item in list.
-            (sequential? ctx-val)
-            (doseq [val ctx-val]
-              ;; For each render, push the value to top of context stack.
-              (render contents sb (conj context-stack val)))
-            ;; Callable value -> Invoke it with the literal block of src text.
-            (instance? clojure.lang.Fn ctx-val)
-            (ctx-val sb context-stack (:content attrs))
-            ;; Non-false non-list value -> Display content once.
-            :else
-            (render contents sb (conj context-stack ctx-val))))))
+  (make-node [this children] (Section. name attrs (vec children))))
+;; ASTNode IS implemented, but not here. To avoid Clojure's circular
+;; dependency inadequacies, we have to implement ASTNode at the top of
+;; core.clj.
 (defn section [name attrs contents]
   (Section. name attrs contents))
 
@@ -63,11 +48,13 @@
     ;; Only render the section if the value is not present, false, or
     ;; an empty list.
     (let [ctx (first context-stack)
-          ctx-val (ctx name)]
-      (if (or (not (contains? ctx name))
-              (not ctx-val)
-              (and (sequential? ctx-val)
-                   (empty? ctx-val)))
+          ctx-val (context-get context-stack name)]
+      ;; Per the spec, a function is truthy, so we should not render.
+      (if (and (not (instance? clojure.lang.Fn ctx-val))
+               (or (not (contains? ctx name))
+                   (not ctx-val)
+                   (and (sequential? ctx-val)
+                        (empty? ctx-val))))
         (render contents sb context-stack)))))
 (defn inverted-section [name attrs contents]
   (InvertedSection. name attrs contents))
@@ -89,22 +76,20 @@
   ASTZipper
   (branch? [this] false)
   (children [this] nil)
-  (make-node [this children] nil)
-  ASTNode
-  (render [this sb context-stack]
-    (if-let [value (context-get context-stack name)]
-      (.append sb (html-escape value)))))
+  (make-node [this children] nil))
+;; ASTNode IS implemented, but not here. To avoid Clojure's circular
+;; dependency inadequacies, we have to implement ASTNode at the top of
+;; core.clj.
 (defn escaped-variable [name] (EscapedVariable. name))
 
 (defrecord UnescapedVariable [name]
   ASTZipper
   (branch? [this] false)
   (children [this] nil)
-  (make-node [this children] nil)
-  ASTNode
-  (render [this sb context-stack]
-    (if-let [value (context-get context-stack name)]
-      (.append sb value))))
+  (make-node [this children] nil))
+;; ASTNode IS implemented, but not here. To avoid Clojure's circular
+;; dependency inadequacies, we have to implement ASTNode at the top of
+;; core.clj.
 (defn unescaped-variable [name] (UnescapedVariable. name))
 
 (extend-protocol ASTZipper

@@ -226,7 +226,11 @@
                                     ;; space in the source.
                                     (scan/position (if strip-whitespace?
                                                      trailing-newline-scanner
-                                                     close-scanner))}
+                                                     close-scanner))
+                                    ;; Lambdas in sections need to parse with
+                                    ;; current delimiters.
+                                    :tag-open (:tag-open state)
+                                    :tag-close (:tag-close state)}
                                    []))
                          zip/down zip/rightmost)
                      state)
@@ -297,23 +301,27 @@
                   state))))
 
 (defn parse
-  [template-string]
-  (loop [p (parser (scan/scanner template-string))]
-    (let [s (:scanner p)]
-      (cond
-       ;; If we are at the end of input, return the output.
-       (scan/end? s)
-       (let [output (:output p)]
-         ;; If we can go up from the zipper's current loc, then there is an
-         ;; unclosed tag, so raise an error.
-         (if (zip/up output)
-           (raise :message (str "Unclosed section: "
-                                (second (zip/node output))
-                                " at " (format-location s)))
-           (zip/root output)))
-       ;; If we are in tag-position, read a tag.
-       (tag-position? s (:state p))
-       (recur (parse-tag p))
-       ;; Otherwise, we must have some text to read. Read until the next line.
-       :else
-       (recur (parse-text p))))))
+  ([template-string]
+     (parse template-string parser-defaults))
+  ([template-string parser-state]
+     (loop [p (parser (scan/scanner template-string)
+                      (ast-zip [])
+                      parser-state)]
+       (let [s (:scanner p)]
+         (cond
+          ;; If we are at the end of input, return the output.
+          (scan/end? s)
+          (let [output (:output p)]
+            ;; If we can go up from the zipper's current loc, then there is an
+            ;; unclosed tag, so raise an error.
+            (if (zip/up output)
+              (raise :message (str "Unclosed section: "
+                                   (second (zip/node output))
+                                   " at " (format-location s)))
+              (zip/root output)))
+          ;; If we are in tag-position, read a tag.
+          (tag-position? s (:state p))
+          (recur (parse-tag p))
+          ;; Otherwise, we must have some text to read. Read until next line.
+          :else
+          (recur (parse-text p)))))))
