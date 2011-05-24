@@ -106,7 +106,7 @@
 
 (extend-protocol ASTNode
   java.lang.String
-  (render [this sb context-stack] (.append sb this))
+  (render [this ^StringBuilder sb context-stack] (.append sb this))
   clojure.lang.PersistentVector
   (render [this sb context-stack]
     (doseq [node this]
