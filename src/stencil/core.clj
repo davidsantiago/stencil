@@ -19,7 +19,7 @@
 
 (extend-protocol ASTNode
   stencil.ast.Section
-  (render [this sb context-stack]
+  (render [this ^StringBuilder sb context-stack]
     (let [ctx-val (context-get context-stack (:name this))]
       (cond (or (not ctx-val) ;; "False" or the empty list -> do nothing.
                 (and (sequential? ctx-val)
@@ -43,7 +43,7 @@
             :else
             (node-render (:contents this) sb (conj context-stack ctx-val)))))
   stencil.ast.EscapedVariable
-  (render [this sb context-stack]
+  (render [this ^StringBuilder sb context-stack]
     (if-let [value (context-get context-stack (:name this))]
       (if (instance? clojure.lang.Fn value)
         (.append sb (html-escape (render-string (str (value))
@@ -51,7 +51,7 @@
         ;; Otherwise, just append its html-escaped value by default.
         (.append sb (html-escape value)))))
   stencil.ast.UnescapedVariable
-  (render [this sb context-stack]
+  (render [this ^StringBuilder sb context-stack]
     (if-let [value (context-get context-stack (:name this))]
       (if (instance? clojure.lang.Fn value)
         (.append sb (render-string (str (value)) (first context-stack)))

@@ -37,7 +37,7 @@
   (fn [cache-entry]
     (let [now (Date.)]
       (< (.getTime now)
-         (+ (.getTime (:entry-date cache-entry))
+         (+ (.getTime ^Date (:entry-date cache-entry))
             timeout-ms)))))
 
 ;; Cache policy dictates when a given cache entry is valid. It should be a
