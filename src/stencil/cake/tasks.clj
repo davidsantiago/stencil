@@ -5,7 +5,7 @@
         [bake.core :only [log]])
   (:import [org.apache.tools.ant.taskdefs Delete]))
 
-(def repo-url "https://github.com/davidsantiago/spec.git")
+(def repo-url "https://github.com/mustache/spec.git")
 (def spec-loc "test/spec")
 
 (defn spec-present?
