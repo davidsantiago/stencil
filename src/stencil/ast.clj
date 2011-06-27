@@ -51,8 +51,7 @@
           ctx-val (context-get context-stack name)]
       ;; Per the spec, a function is truthy, so we should not render.
       (if (and (not (instance? clojure.lang.Fn ctx-val))
-               (or (not (contains? ctx name))
-                   (not ctx-val)
+               (or (not ctx-val)
                    (and (sequential? ctx-val)
                         (empty? ctx-val))))
         (render contents sb context-stack)))))
