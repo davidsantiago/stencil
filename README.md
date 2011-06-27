@@ -136,7 +136,7 @@ to use them in your templates.
 
 If you are using Cake or Leiningen, you can add
 
-    [stencil "0.1.0"]
+    [stencil "0.1.1"]
 
 to your project.clj and run `cake deps` or `lein deps`.
 
@@ -145,7 +145,11 @@ to your project.clj and run `cake deps` or `lein deps`.
 I don't currently know of any bugs or issues with the software, but there
 probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
-z
+
+## Recently
+
+* Released version 0.1.1, fixing bug in the handling of inverted sections.
+
 ## License
 
 Eclipse Public License
