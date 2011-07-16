@@ -136,7 +136,7 @@ to use them in your templates.
 
 If you are using Cake or Leiningen, you can add
 
-    [stencil "0.1.1"]
+    [stencil "0.1.2"]
 
 to your project.clj and run `cake deps` or `lein deps`.
 
@@ -147,6 +147,10 @@ probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
 
 ## Recently
+
+* Released version 0.1.2, fixing bug in the handling of missing partial templates and adding functions to remove entries from the dynamic template store and cache.
+
+### Previously...
 
 * Released version 0.1.1, fixing bug in the handling of inverted sections.
 

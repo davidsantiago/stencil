@@ -38,6 +38,8 @@
       (let [{:keys [name data expected template desc partials]} test]
         ;; If there are partials, register them before test clauses.
         (eval `(deftest ~(symbol name)
+                 ;; Clear the dynamic template store to ensure a clean env.
+                 (unregister-all-templates)
                  (doseq [[partial-name# partial-src#] ~partials]
                    (register-template partial-name# partial-src#))
                  (let [data# (compile-data-map ~data)]
