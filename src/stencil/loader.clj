@@ -60,7 +60,7 @@
   ([src parsed timestamp]
      (TemplateCacheEntry. src parsed timestamp)))
 
-(declare invalidate-cache-entry)
+(declare invalidate-cache-entry invalidate-cache)
 
 (defn register-template
   "Allows one to register a template in the dynamic template store. Give the
@@ -68,6 +68,19 @@
   [template-name content-string]
   (swap! dynamic-template-store assoc-fuzzy template-name content-string)
   (invalidate-cache-entry template-name))
+
+(defn unregister-template
+  "Removes the template with the given name from the dynamic template store."
+  [template-name]
+  (swap! dynamic-template-store dissoc-fuzzy template-name)
+  (invalidate-cache-entry template-name))
+
+(defn unregister-all-templates
+  "Clears the dynamic template store. Also necessarily clears the template
+   cache."
+  []
+  (reset! dynamic-template-store {})
+  (invalidate-cache))
 
 (defn find-file
   "Given a name of a mustache template, attempts to find the corresponding
@@ -117,6 +130,11 @@
    is one."
   [template-name]
   (swap! parsed-template-cache dissoc-fuzzy template-name))
+
+(defn invalidate-cache
+  "Clears all entries out of the cache."
+  []
+  (reset! parsed-template-cache {}))
 
 (defn cache-get
   "Given a template name, attempts to fetch the template with that name from
@@ -181,4 +199,5 @@
           template (if padding
                      (load (:name this) padding #(indent-string % padding))
                      (load (:name this)))]
-      (render template sb context-stack))))
+      (when template
+        (render template sb context-stack)))))
