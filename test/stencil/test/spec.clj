@@ -1,21 +1,46 @@
 (ns stencil.test.spec
   (:use clojure.test
-        [clojure.java.io :only [file]]
         stencil.core
         [stencil.loader :exclude [load]])
-  (:require [clojure.contrib.json :as json]))
+  (:require [clojure.data.json :as json]
+            [clojure.java.shell :as sh]
+            [clojure.java.io :as io]))
 
+(def repo-url "https://github.com/mustache/spec.git")
 (def spec-dir "test/spec")
+
+;; Acquiring the specs
+
+(defn spec-present?
+  "Check if the spec is available in the test/spec dir. Checks for the
+   existence of the specs subdir."
+  []
+  (.exists (io/file spec-dir "specs")))
+
+(defn clone-spec
+  "Use git to clone the specs into the spec-dir."
+  []
+  (try (sh/sh "git" "clone" repo-url spec-dir)
+       (catch java.io.IOException e)))
+
+(defn pull-spec-if-missing
+  "Get the spec if it isn't already present."
+  []
+  (when (not (spec-present?))
+    (clone-spec)))
+
+
+;; Read specs and create tests from them.
 
 (defn spec-json
   []
   ;; JSON are duplicates of YAML, and we don't have a YAML parser
   ;; that can handle !code tags, so for now we use JSON.
   (filter #(.endsWith (.getName %) ".json")
-          (file-seq (file spec-dir "specs"))))
+          (file-seq (io/file spec-dir "specs"))))
 
 (defn read-spec-file
-  [^File spec-file]
+  [^java.io.File spec-file]
   (json/read-json (slurp spec-file)))
 
 (defn compile-data-map
@@ -45,6 +70,8 @@
                  (let [data# (compile-data-map ~data)]
                    (is (= ~expected
                           (render-string ~template data#)) ~desc))))))))
+
+(pull-spec-if-missing)
 
 (doseq [spec (spec-json)]
   (tests-from-spec (read-spec-file spec)))
