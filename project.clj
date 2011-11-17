@@ -1,7 +1,7 @@
-(defproject stencil "0.1.2"
+(defproject stencil "0.2.0"
   :description "Mustache in Clojure"
-  :dependencies [[clojure "1.2.0"]
-                 [org.clojure/clojure-contrib "1.2.0"]]
-  :dev-dependencies [[swank-clj "0.1.7-SNAPSHOT"]
-                     [org.clojure/clojure-contrib "1.2.0"]]
-  :tasks [cake.tasks.swank-clj stencil.cake.tasks])
+  :dependencies [[clojure "1.3.0"]
+                 [slingshot "0.8.0"]]
+  :dev-dependencies [[ritz "0.2.0"]
+                     [org.clojure/data.json "0.1.1"]]
+  :extra-files-to-clean ["test/spec"])
