@@ -6,7 +6,7 @@
   (:import java.util.regex.Pattern)
   (:use [stencil ast re-utils utils]
         clojure.pprint
-        clojure.contrib.condition))
+        [slingshot.slingshot :only [throw+]]))
 
 ;;
 ;; Settings and defaults.
@@ -55,7 +55,7 @@
    numbers, the row and column."
   [s idx]
   (if (> idx (count s))
-    (raise :message "String index is greater than length of string."))
+    (throw+ java.lang.IndexOutOfBoundsException))
   (loop [lines 0
          last-line-start 0 ;; Index in string of the last line beginning seen.
          i 0]
@@ -206,11 +206,17 @@
         {:keys [scanner output state]} p]
     ;; First, let's analyze the results and throw any errors necessary.
     (cond (empty? tag-content)
-          (raise :message (str "Illegal content in tag: " tag-content
-                               " at " (format-location tag-content-scanner)))
+          (throw+ {:type :illegal-tag-content
+                   :tag-content tag-content
+                   :scanner tag-content-scanner}
+                  (str "Illegal content in tag: " tag-content
+                       " at " (format-location tag-content-scanner)))
           (nil? (:match close-scanner))
-          (raise :message (str "Unclosed tag: " tag-content
-                               " at " (format-location close-scanner))))
+          (throw+ {:type :unclosed-tag
+                   :tag-content tag-content
+                   :scanner close-scanner}
+                  (str "Unclosed tag: " tag-content
+                       " at " (format-location close-scanner))))
     (case sigil
           (\{ \&) (parser scanner
                           (zip/append-child output
@@ -248,10 +254,13 @@
                      state)
           \/ (let [top-section (zip/node output)] ;; Do consistency checks...
                (if (not= (:name top-section) (parse-tag-name tag-content))
-                 (raise :message (str "Attempt to close section out of order: "
-                                      tag-content
-                                      " at "
-                                      (format-location tag-content-scanner)))
+                 (throw+ {:type :mismatched-closing-tag
+                          :tag-content tag-content
+                          :scanner tag-content-scanner}
+                         (str "Attempt to close section out of order: "
+                              tag-content
+                              " at "
+                              (format-location tag-content-scanner)))
                  ;; Going to close it by moving up the zipper tree, but first
                  ;; we need to store the source code between the tags so that
                  ;; it can be used in a lambda.
@@ -315,9 +324,11 @@
             ;; If we can go up from the zipper's current loc, then there is an
             ;; unclosed tag, so raise an error.
             (if (zip/up output)
-              (raise :message (str "Unclosed section: "
-                                   (second (zip/node output))
-                                   " at " (format-location s)))
+              (throw+ {:type :unclosed-tag
+                       :scanner s}
+                      (str "Unclosed section: "
+                           (second (zip/node output))
+                           " at " (format-location s)))
               (zip/root output)))
           ;; If we are in tag-position, read a tag.
           (tag-position? s (:state p))
