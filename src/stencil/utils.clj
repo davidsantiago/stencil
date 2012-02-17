@@ -134,3 +134,18 @@
            (get-fuzzy matching-context (first key)))
          ;; Didn't find a matching context.
          not-found))))
+
+(defn pass-context
+  "Marks a lambda function with metadata such that it will get passed an additional
+   argument containing the current context."
+  [lambda-fn]
+  (with-meta lambda-fn {:stencil/pass-context true}))
+
+(defn call-lambda
+  "If a lambda function has metadata :stencil/pass-context, it will get called with
+   a second argument, which is the current context. This allows extension of the
+   mustache spec when desired."
+  [lambda-fn content context]
+  (if (:stencil/pass-context (meta lambda-fn))
+    (lambda-fn content context)
+    (lambda-fn content)))

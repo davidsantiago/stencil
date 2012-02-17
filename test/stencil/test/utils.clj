@@ -86,3 +86,7 @@
   (is (= "failure"
          (context-get '({:a "problem?"} {:a {:b "success"}})
                       ["a" "b"] "failure"))))
+
+(deftest test-pass-context
+  (is (= "foo*" (call-lambda (fn [x] (str x "*")) "foo" "bar")))
+  (is (= "foo*bar" (call-lambda (pass-context (fn [x y] (str x "*" y))) "foo" "bar"))))
