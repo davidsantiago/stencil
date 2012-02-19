@@ -140,11 +140,15 @@
    any. The content arg is the content of the tag being processed as a lambda in
    the template, and the context arg is the current context at this point in the
    processing. The latter will be ignored unless metadata directs otherwise.
-
+ 
    Respected metadata:
      - :stencil/pass-context: passes the current context to the lambda as the
        second arg."
-  [lambda-fn content context]
-  (if (:stencil/pass-context (meta lambda-fn))
-    (lambda-fn content context)
-    (lambda-fn content)))
+  ([lambda-fn context]
+     (if (:stencil/pass-context (meta lambda-fn))
+       (lambda-fn context)
+       (lambda-fn)))
+  ([lambda-fn content context]
+      (if (:stencil/pass-context (meta lambda-fn))
+        (lambda-fn content context)
+        (lambda-fn content))))

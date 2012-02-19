@@ -88,6 +88,10 @@
                       ["a" "b"] "failure"))))
 
 (deftest test-pass-context
+  (is (= "foo" (call-lambda (fn [] "foo") nil)))
+  (is (= "foo*bar" (call-lambda ^{:stencil/pass-context true}
+                                (fn [ctx] (str "foo*" (:addition ctx)))
+                                {:addition "bar"})))
   (is (= "foo*" (call-lambda (fn [x] (str x "*")) "foo" nil)))
   (is (= "foo*bar"
          (call-lambda ^{:stencil/pass-context true}
