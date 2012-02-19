@@ -48,15 +48,19 @@
   (render [this ^StringBuilder sb context-stack]
     (if-let [value (context-get context-stack (:name this))]
       (if (instance? clojure.lang.Fn value)
-        (.append sb (html-escape (render-string (str (value))
-                                                (first context-stack))))
+        (.append sb (html-escape
+                     (render-string (str (call-lambda value
+                                                      (first context-stack)))
+                                    (first context-stack))))
         ;; Otherwise, just append its html-escaped value by default.
         (.append sb (html-escape value)))))
   stencil.ast.UnescapedVariable
   (render [this ^StringBuilder sb context-stack]
     (if-let [value (context-get context-stack (:name this))]
       (if (instance? clojure.lang.Fn value)
-        (.append sb (render-string (str (value)) (first context-stack)))
+        (.append sb (render-string (str (call-lambda value
+                                                     (first context-stack)))
+                                   (first context-stack)))
         ;; Otherwise, just append its value.
         (.append sb value)))))
 
