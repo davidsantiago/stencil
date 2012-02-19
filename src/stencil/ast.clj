@@ -17,7 +17,7 @@
                               the existing children, make the new node."))
 
 (defprotocol ASTNode
-  (render [this ^StrinbBuilder sb context-stack]
+  (render [this ^StringBuilder sb context-stack]
     "Given a StringBuilder and the current context-stack, render this node to
      the result string in the StringBuilder."))
 
