@@ -135,16 +135,15 @@
          ;; Didn't find a matching context.
          not-found))))
 
-(defn pass-context
-  "Marks a lambda function with metadata such that it will get passed an additional
-   argument containing the current context."
-  [lambda-fn]
-  (with-meta lambda-fn {:stencil/pass-context true}))
-
 (defn call-lambda
-  "If a lambda function has metadata :stencil/pass-context, it will get called with
-   a second argument, which is the current context. This allows extension of the
-   mustache spec when desired."
+  "Calls a lambda function, respecting the options given in its metadata, if
+   any. The content arg is the content of the tag being processed as a lambda in
+   the template, and the context arg is the current context at this point in the
+   processing. The latter will be ignored unless metadata directs otherwise.
+
+   Respected metadata:
+     - :stencil/pass-context: passes the current context to the lambda as the
+       second arg."
   [lambda-fn content context]
   (if (:stencil/pass-context (meta lambda-fn))
     (lambda-fn content context)
