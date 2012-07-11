@@ -53,7 +53,7 @@
                                                       (first context-stack)))
                                     (first context-stack))))
         ;; Otherwise, just append its html-escaped value by default.
-        (.append sb (html-escape value)))))
+        (.append sb (html-escape (str value))))))
   stencil.ast.UnescapedVariable
   (render [this ^StringBuilder sb context-stack]
     (if-let [value (context-get context-stack (:name this))]

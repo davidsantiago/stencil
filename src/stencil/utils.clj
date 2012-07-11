@@ -4,11 +4,18 @@
 (defn html-escape
   "HTML-escapes the given string."
   [^String s]
-  (-> s
-      (str/replace "&" "&amp;") ;; Do & first, or it escapes other escapes!
-      (str/replace "<" "&lt;")
-      (str/replace ">" "&gt;")
-      (str/replace "\"" "&quot;")))
+  (let [sb (StringBuilder.)]
+    (loop [idx 0]
+      (if (>= idx (count s))
+        (.toString sb)
+        (let [c (.charAt s idx)]
+          (case c
+            \& (.append sb "&amp;")
+            \< (.append sb "&lt;")
+            \> (.append sb "&gt;")
+            \" (.append sb "&quot;")
+            (.append sb c))
+          (recur (inc idx)))))))
 
 (defn indent-string
   "Given a String s, indents each line by inserting the string indentation
