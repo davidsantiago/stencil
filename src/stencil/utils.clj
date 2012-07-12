@@ -64,8 +64,10 @@
   ([map key]
      (get-fuzzy map key nil))
   ([map key not-found]
-     (get map key (get map (name key)
-                       (get map (keyword key) not-found)))))
+     (or (get map key)
+         (get map (name key))
+         (get map (keyword key))
+         not-found)))
 
 (defn assoc-fuzzy
   "Just like clojure.core/assoc, except considers keys that are keywords and
