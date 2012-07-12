@@ -8,7 +8,7 @@
     (loop [idx 0]
       (if (>= idx (count s))
         (.toString sb)
-        (let [c (.charAt s idx)]
+        (let [c (char (.charAt s idx))]
           (case c
             \& (.append sb "&amp;")
             \< (.append sb "&lt;")
