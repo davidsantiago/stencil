@@ -99,6 +99,10 @@
 ;;
 ;; Context stack access logic
 ;;
+;; find-containing-context and context-get are a significant portion of
+;; execution time during rendering, so they are written in a less beautiful
+;; way to make them go faster.
+;;
 
 (defn find-containing-context
   "Given a context stack and a key, walks down the context stack until it
@@ -107,7 +111,7 @@
    so nil when no context is found that contains the key."
   [context-stack key]
   (loop [curr-context-stack context-stack]
-    (if-let [context-top (first curr-context-stack)]
+    (if-let [context-top (peek curr-context-stack)]
       (if (contains-fuzzy? context-top key)
         context-top
         ;; Didn't have the key, so walk down the stack.
@@ -125,7 +129,7 @@
      (context-get context-stack key nil))
   ([context-stack key not-found]
      ;; First need to check for an implicit top reference.
-     (if (= :implicit-top key)
+     (if (.equals :implicit-top key) ;; .equals is faster than =
        (first context-stack)
        ;; Walk down the context stack until we find one that has the
        ;; first part of the key.
