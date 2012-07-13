@@ -115,7 +115,7 @@
   [^String s]
   (if (= "." s)
     :implicit-top
-    (string/split s #"\.")))
+    (doall (map keyword (string/split s #"\.")))))
 
 (defn parse-text
   "Given a parser that is not in tag position, reads text until it is and

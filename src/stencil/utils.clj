@@ -4,11 +4,20 @@
 (defn html-escape
   "HTML-escapes the given string."
   [^String s]
-  (-> s
-      (str/replace "&" "&amp;") ;; Do & first, or it escapes other escapes!
-      (str/replace "<" "&lt;")
-      (str/replace ">" "&gt;")
-      (str/replace "\"" "&quot;")))
+  ;; This method is "Java in Clojure" for serious speedups.
+  (let [sb (StringBuilder.)
+        slength (long (count s))]
+    (loop [idx (long 0)]
+      (if (>= idx slength)
+        (.toString sb)
+        (let [c (char (.charAt s idx))]
+          (case c
+            \& (.append sb "&amp;")
+            \< (.append sb "&lt;")
+            \> (.append sb "&gt;")
+            \" (.append sb "&quot;")
+            (.append sb c))
+          (recur (inc idx)))))))
 
 (defn indent-string
   "Given a String s, indents each line by inserting the string indentation
@@ -40,15 +49,15 @@
    the variant of the found key for true, nil for false."
   ([map key] (contains-fuzzy? map key nil))
   ([map key not-found]
-      (if (contains? map key)
-        key
-        (let [str-key (name key)]
-          (if (contains? map str-key)
-            str-key
-            (let [kw-key (keyword key)]
-              (if (contains? map kw-key)
-                kw-key
-                not-found)))))))
+     (if (contains? map key)
+       key
+       (if (keyword? key)
+         (let [str-key (name key)]
+           (if (contains? map str-key)
+             str-key not-found))
+         (let [kw-key (keyword key)]
+           (if (contains? map kw-key)
+             kw-key not-found))))))
 
 (defn get-fuzzy
   "Given a map and a key, gets the value out of the map, trying various
@@ -57,8 +66,10 @@
   ([map key]
      (get-fuzzy map key nil))
   ([map key not-found]
-     (get map key (get map (name key)
-                       (get map (keyword key) not-found)))))
+     (or (get map key)
+         (get map (keyword key))
+         (get map (name key))
+         not-found)))
 
 (defn assoc-fuzzy
   "Just like clojure.core/assoc, except considers keys that are keywords and
@@ -90,6 +101,10 @@
 ;;
 ;; Context stack access logic
 ;;
+;; find-containing-context and context-get are a significant portion of
+;; execution time during rendering, so they are written in a less beautiful
+;; way to make them go faster.
+;;
 
 (defn find-containing-context
   "Given a context stack and a key, walks down the context stack until it
@@ -98,7 +113,7 @@
    so nil when no context is found that contains the key."
   [context-stack key]
   (loop [curr-context-stack context-stack]
-    (if-let [context-top (first curr-context-stack)]
+    (if-let [context-top (peek curr-context-stack)]
       (if (contains-fuzzy? context-top key)
         context-top
         ;; Didn't have the key, so walk down the stack.
@@ -116,7 +131,7 @@
      (context-get context-stack key nil))
   ([context-stack key not-found]
      ;; First need to check for an implicit top reference.
-     (if (= :implicit-top key)
+     (if (.equals :implicit-top key) ;; .equals is faster than =
        (first context-stack)
        ;; Walk down the context stack until we find one that has the
        ;; first part of the key.

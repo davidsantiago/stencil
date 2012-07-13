@@ -34,9 +34,9 @@
          (tag-position? (scanner "Hi. {{test}}") parser-defaults))))
 
 (deftest test-parse-tag-name
-  (is (= ["test"]
+  (is (= [:test]
            (parse-tag-name "test")))
-  (is (= ["test" "test2"]
+  (is (= [:test :test2]
            (parse-tag-name "test.test2"))))
 
 (deftest test-parse-text
