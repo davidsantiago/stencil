@@ -49,15 +49,15 @@
    the variant of the found key for true, nil for false."
   ([map key] (contains-fuzzy? map key nil))
   ([map key not-found]
-      (if (contains? map key)
-        key
-        (let [str-key (name key)]
-          (if (contains? map str-key)
-            str-key
-            (let [kw-key (keyword key)]
-              (if (contains? map kw-key)
-                kw-key
-                not-found)))))))
+     (if (contains? map key)
+       key
+       (if (keyword? key)
+         (let [str-key (name key)]
+           (if (contains? map str-key)
+             str-key not-found))
+         (let [kw-key (keyword key)]
+           (if (contains? map kw-key)
+             kw-key not-found))))))
 
 (defn get-fuzzy
   "Given a map and a key, gets the value out of the map, trying various
@@ -67,8 +67,8 @@
      (get-fuzzy map key nil))
   ([map key not-found]
      (or (get map key)
-         (get map (name key))
          (get map (keyword key))
+         (get map (name key))
          not-found)))
 
 (defn assoc-fuzzy
