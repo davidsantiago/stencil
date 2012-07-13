@@ -4,9 +4,11 @@
 (defn html-escape
   "HTML-escapes the given string."
   [^String s]
-  (let [sb (StringBuilder.)]
-    (loop [idx 0]
-      (if (>= idx (count s))
+  ;; This method is "Java in Clojure" for serious speedups.
+  (let [sb (StringBuilder.)
+        slength (long (count s))]
+    (loop [idx (long 0)]
+      (if (>= idx slength)
         (.toString sb)
         (let [c (char (.charAt s idx))]
           (case c
