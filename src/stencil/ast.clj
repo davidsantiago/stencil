@@ -108,8 +108,12 @@
   (render [this ^StringBuilder sb context-stack] (.append sb this))
   clojure.lang.PersistentVector
   (render [this sb context-stack]
-    (doseq [node this]
-      (render node sb context-stack))))
+    ;; This is about 10% faster than the (much nicer) doseq equivalent.
+    (let [vec-length (long (count this))]
+      (loop [i (int 0)]
+        (when (< i vec-length)
+          (render (nth this i) sb context-stack)
+          (recur (unchecked-inc i)))))))
 
 ;; Implement a Zipper over ASTZippers.
 
