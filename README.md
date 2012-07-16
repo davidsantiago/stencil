@@ -132,6 +132,14 @@ In particular, the Mustache spec specifies that the output of lambda tags
 should not be cached, and so Stencil does not. Keep that in mind if you decide
 to use them in your templates.
 
+I'd like to thank YourKit for helping me keep Stencil fast. 
+
+YourKit is kindly supporting open source projects with its full-featured Java Profiler.
+YourKit, LLC is the creator of innovative and intelligent tools for profiling
+Java and .NET applications. Take a look at YourKit's leading software products:
+<a href="http://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and
+<a href="http://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>.
+
 ## Obtaining
 
 If you are using Cake or Leiningen, you can add
