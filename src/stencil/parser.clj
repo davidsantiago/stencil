@@ -1,9 +1,10 @@
 (ns stencil.parser
   (:refer-clojure :exclude [partial])
-  (:require [stencil.scanner :as scan]
+  (:require [scout.core :as scan]
             [clojure.zip :as zip]
             [clojure.string :as string])
-  (:import java.util.regex.Pattern)
+  (:import java.util.regex.Pattern
+           scout.core.Scanner)
   (:use [stencil ast re-utils utils]
         clojure.pprint
         [slingshot.slingshot :only [throw+]]))
@@ -69,7 +70,7 @@
 (defn format-location
   "Given either a scanner or a string and index into the string, return a
    message describing the location by row and column."
-  ([^stencil.scanner.Scanner sc]
+  ([^Scanner sc]
      (format-location (:src sc) (scan/position sc)))
   ([s idx]
       (let [[line col] (get-line-col-from-index s idx)]
@@ -99,7 +100,7 @@
   "Takes a scanner and returns true if it is currently in \"tag position.\"
    That is, if the only thing between it and the start of a tag is possibly some
    non-line-breaking whitespace padding."
-  [^stencil.scanner.Scanner s parser-state]
+  [^Scanner s parser-state]
   (let [tag-open-re (re-concat #"([ \t]*)?"
                                (re-quote (:tag-open parser-state)))]
     ;; Return true if first expr makes progress.

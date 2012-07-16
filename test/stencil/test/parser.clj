@@ -3,7 +3,7 @@
   (:require [clojure.zip :as zip])
   (:use clojure.test
         [stencil ast parser utils]
-        [stencil.scanner :rename {peek peep}]))
+        [scout.core :rename {peek peep}]))
 
 (deftest test-get-line-col-from-index
   (is (= [1 1] (get-line-col-from-index "a\nb\nc" 0)))
