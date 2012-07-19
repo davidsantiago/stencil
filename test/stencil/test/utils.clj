@@ -2,50 +2,6 @@
   (:use clojure.test
         stencil.utils))
 
-(deftest test-contains-fuzzy?
-  (is (= :a
-         (contains-fuzzy? {:a 1} :a)))
-  (is (= :a
-         (contains-fuzzy? {:a 1} "a")))
-  (is (= "a"
-         (contains-fuzzy? {"a" 1} :a)))
-  (is (= "a"
-         (contains-fuzzy? {"a" 1} "a")))
-  (is (= 1
-         (contains-fuzzy? {:a 2} "b" 1))))
-
-(deftest test-get-fuzzy
-  (is (= "success"
-         (get-fuzzy {"test" "success"} "test")))
-  (is (= "success"
-         (get-fuzzy {"test" "success"} :test)))
-  (is (= "success"
-         (get-fuzzy {:test "success"} :test)))
-  (is (= "success"
-         (get-fuzzy {:test "success"} "test")))
-  (is (= "failure"
-         (get-fuzzy {:test "success"} "TEST" "failure"))))
-
-(deftest test-assoc-fuzzy
-  (is (= {:a 1}
-         (assoc-fuzzy {:a 0} :a 1)))
-  (is (= {:a 1}
-         (assoc-fuzzy {:a 0} "a" 1)))
-  (is (= {"a" 1}
-         (assoc-fuzzy {"a" 0} :a 1)))
-  (is (= {"a" 1}
-         (assoc-fuzzy {"a" 0} "a" 1)))
-  (is (= {:a 1 :b 2}
-         (assoc-fuzzy {:b 0} :a 1 "b" 2))))
-
-(deftest test-dissoc-fuzzy
-  (is (= {}
-         (dissoc-fuzzy {"test" 1} "test")))
-  (is (= {}
-         (dissoc-fuzzy {"test" 1} :test)))
-  (is (= {}
-         (dissoc-fuzzy {"test1" 1 :test2 2} :test1 "test2"))))
-
 (deftest test-find-containing-context
   (is (= {:a 1}
          (find-containing-context '({:a 1}) :a)))
