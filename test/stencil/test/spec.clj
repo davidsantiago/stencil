@@ -7,7 +7,7 @@
             [clojure.java.io :as io]))
 
 (def repo-url "https://github.com/mustache/spec.git")
-(def spec-dir "test/spec")
+(def spec-dir "target/test/spec")
 
 ;; Acquiring the specs
 
