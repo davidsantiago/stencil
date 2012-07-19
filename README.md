@@ -30,14 +30,15 @@ The easiest way to render a small template is using the function
 `render-string`, which takes two arguments, a string containing the text of
 the Mustache template and a map of the values referenced in the template.
 
-The keys of the value map can be either keywords or strings; if a keyword and
-string of the same name are present, the string is preferred. (Why support
-both? Keywords are more convenient to use in Clojure, but not all valid
-Mustache keys can be made into keywords. Rather than force strings, Stencil
-lets you use whichever will work better for you). 
+The keys of the value map can be either keywords or strings; if a
+keyword and string of the same name are present, the keyword is
+preferred. (Why support both? Keywords are more convenient to use in
+Clojure, but not all valid Mustache keys can be made into
+keywords. Rather than force strings, Stencil lets you use whichever
+will work better for you).
 
     (render-string "Hi there, {{name}}."
-                   {"name" "Donald" :name "Dick"})
+                   {"name" "Dick" :name "Donald"})
     "Hi there, Donald."
 
 For a larger template, holding onto it and passing it in as a string is
@@ -79,26 +80,17 @@ it.
 
 ### Manual Cache Management
 
-By default, the template cache will keep a template in the cache for 5
-seconds before it will decide to reload it. You can set the cache policy
-manually using the function `set-cache-policy`. The argument to
-`set-cache-policy` is a function that returns true if the cached item is still
-valid and false if it should be reloaded. The argument is a cache entry data
-structure; you should check the source of `stencil.loader` for specifics.
-However, there are some cache policy functions that should cover most cases:
-
-* `cache-forever` - This function can be used as a cache policy function that
-will keep templates in the cache forever (or until they are explicitly
-reloaded). This can be useful if you know that templates won't change during
-the life of the program.
-* `cache-never` - This function can be used similarly to never cache a
-template. Could be useful for development, so that changes to templates are
-available immediately.
-* `cache-timeout` - This function cannot be used as a cache policy function
-directly, it's a combinator. It takes an integer argument that will be the
-number of milliseconds to keep an item in the cache, and returns a cache
-policy function that implements that policy. The default cache policy is
-`(cache-timeout 5000)`.
+Stencil uses [core.cache](https://github.com/clojure/core.cache) for
+caching. By default, Stencil uses a simple LRU cache. This is a pretty
+good cache to use in deployed code, where the set of templates being
+rendered is probably not going to change during runtime. However, you
+can control the type of cache used by Stencil to get the most benefit
+out of your specific code's usage patterns. You can set the cache
+manually using the function `set-cache` from the `stencil.loader`
+namespace; pass it some object that implements the `CacheProtocol`
+protocol from core.cache. In particular, during development, you might
+want to use a TTL cache with a very low TTL parameter, so that
+templates are reloaded as soon as you modify them.
 
 You can also work at an even lower-level, manually caching templates using the
 `cache` function and the functions related to accessing the cache, then
@@ -132,7 +124,7 @@ In particular, the Mustache spec specifies that the output of lambda tags
 should not be cached, and so Stencil does not. Keep that in mind if you decide
 to use them in your templates.
 
-I'd like to thank YourKit for helping me keep Stencil fast. 
+I'd like to thank YourKit for helping me keep Stencil fast.
 
 YourKit is kindly supporting open source projects with its full-featured Java Profiler.
 YourKit, LLC is the creator of innovative and intelligent tools for profiling
@@ -142,11 +134,11 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 ## Obtaining
 
-If you are using Cake or Leiningen, you can add
+Simply add
 
-    [stencil "0.2.0"]
+    [stencil "0.3.0"]
 
-to your project.clj and run `cake deps` or `lein deps`.
+to the `:dependencies` key of your project.clj.
 
 ## Bugs and Missing Features
 
@@ -156,9 +148,18 @@ it as soon as possible.
 
 ## Recently
 
-* Released version 0.2.0. Supports Clojure 1.3 and now builds with lein instead of cake. Now uses Slingshot for exceptions instead of clojure.contrib.condition; should not result in any code changes unless you are examining exceptions.
+* Released version 0.3.0. 
+  - Performance improvements (Thanks YourKit!).
+  - Keywords are now preferred over strings in contexts.
+  - Change to using core.cache for more flexible and easier to use
+    caching. API is slightly different, but only if you were managing
+    cache policy manually (see above).
+  - Lambdas that have `:stencil/pass-context` true in their metadata will be called with
+    the current context as their second argument.
 
 ### Previously...
+
+* Released version 0.2.0. Supports Clojure 1.3 and now builds with lein instead of cake. Now uses Slingshot for exceptions instead of clojure.contrib.condition; should not result in any code changes unless you are examining exceptions.
 
 * Released version 0.1.2, fixing bug in the handling of missing partial templates and adding functions to remove entries from the dynamic template store and cache.
 
