@@ -66,7 +66,7 @@
                  ;; Clear the dynamic template store to ensure a clean env.
                  (unregister-all-templates)
                  (doseq [[partial-name# partial-src#] ~partials]
-                   (register-template partial-name# partial-src#))
+                   (register-template (name partial-name#) partial-src#))
                  (let [data# (compile-data-map ~data)]
                    (is (= ~expected
                           (render-string ~template data#)) ~desc))))))))

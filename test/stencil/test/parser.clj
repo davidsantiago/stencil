@@ -3,7 +3,7 @@
   (:require [clojure.zip :as zip])
   (:use clojure.test
         [stencil ast parser utils]
-        [stencil.scanner :rename {peek peep}]))
+        [scout.core :rename {peek peep}]))
 
 (deftest test-get-line-col-from-index
   (is (= [1 1] (get-line-col-from-index "a\nb\nc" 0)))
@@ -34,9 +34,9 @@
          (tag-position? (scanner "Hi. {{test}}") parser-defaults))))
 
 (deftest test-parse-tag-name
-  (is (= ["test"]
+  (is (= [:test]
            (parse-tag-name "test")))
-  (is (= ["test" "test2"]
+  (is (= [:test :test2]
            (parse-tag-name "test.test2"))))
 
 (deftest test-parse-text

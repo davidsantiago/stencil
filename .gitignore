@@ -7,3 +7,4 @@ classes
 build
 /stencil
 test/spec
+.lein-*

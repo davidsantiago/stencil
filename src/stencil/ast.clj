@@ -17,7 +17,7 @@
                               the existing children, make the new node."))
 
 (defprotocol ASTNode
-  (render [this ^StrinbBuilder sb context-stack]
+  (render [this ^StringBuilder sb context-stack]
     "Given a StringBuilder and the current context-stack, render this node to
      the result string in the StringBuilder."))
 
@@ -108,8 +108,8 @@
   (render [this ^StringBuilder sb context-stack] (.append sb this))
   clojure.lang.PersistentVector
   (render [this sb context-stack]
-    (doseq [node this]
-      (render node sb context-stack))))
+    (dotimes [i (count this)]
+      (render (nth this i) sb context-stack))))
 
 ;; Implement a Zipper over ASTZippers.
 
