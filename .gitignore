@@ -7,5 +7,4 @@ classes
 build
 /stencil
 test/spec
-.lein-deps-sum
-.lein-failures
+.lein-*
