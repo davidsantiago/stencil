@@ -3,7 +3,8 @@
             [stencil.loader :as loader])
   (:use [stencil.parser :exclude [partial]]
         [stencil.ast :rename {render node-render
-                           partial node-partial}]
+                              partial node-partial}]
+        [quoin.text :as qtext]
         [clojure.java.io :only [resource]]
         stencil.utils))
 
@@ -48,12 +49,12 @@
   (render [this ^StringBuilder sb context-stack]
     (if-let [value (context-get context-stack (:name this))]
       (if (instance? clojure.lang.Fn value)
-        (.append sb (html-escape
+        (.append sb (qtext/html-escape
                      (render-string (str (call-lambda value
                                                       (first context-stack)))
                                     (first context-stack))))
         ;; Otherwise, just append its html-escaped value by default.
-        (.append sb (html-escape (str value))))))
+        (.append sb (qtext/html-escape (str value))))))
   stencil.ast.UnescapedVariable
   (render [this ^StringBuilder sb context-stack]
     (if-let [value (context-get context-stack (:name this))]

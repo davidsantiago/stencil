@@ -1,102 +1,6 @@
 (ns stencil.utils
-  (:require [clojure.string :as str]))
-
-(defn html-escape
-  "HTML-escapes the given string."
-  [^String s]
-  ;; This method is "Java in Clojure" for serious speedups.
-  (let [sb (StringBuilder.)
-        slength (long (count s))]
-    (loop [idx (long 0)]
-      (if (>= idx slength)
-        (.toString sb)
-        (let [c (char (.charAt s idx))]
-          (case c
-            \& (.append sb "&amp;")
-            \< (.append sb "&lt;")
-            \> (.append sb "&gt;")
-            \" (.append sb "&quot;")
-            (.append sb c))
-          (recur (inc idx)))))))
-
-(defn indent-string
-  "Given a String s, indents each line by inserting the string indentation
-   at the beginning."
-  [^String s ^String indentation]
-  (let [str+padding (StringBuilder.)]
-    (loop [start-idx 0
-           next-idx (.indexOf s "\n")] ;; \n handles both \r\n & \n linebreaks.
-      (if (= -1 next-idx)
-        ;; We've reached the end. If the start and end are the same, don't
-        ;; indent before an empty string. Either way, return the string. 
-        (do (when (not= start-idx (count s))
-              (.append str+padding indentation)
-              (.append str+padding s start-idx (count s)))
-            (.toString str+padding))
-        (let [next-idx (inc next-idx)]
-          (.append str+padding indentation)
-          (.append str+padding s start-idx next-idx)
-          (recur next-idx (.indexOf s "\n" next-idx)))))))
-
-;;
-;; Fuzzy map access routines
-;;
-
-(defn contains-fuzzy?
-  "Given a map and a key, returns \"true\" if the map contains the key, allowing
-   for differences of type between string and keyword. That is, :blah and
-   \"blah\" are the same key. The key of the same type is preferred. Returns
-   the variant of the found key for true, nil for false."
-  ([map key] (contains-fuzzy? map key nil))
-  ([map key not-found]
-     (if (contains? map key)
-       key
-       (if (keyword? key)
-         (let [str-key (name key)]
-           (if (contains? map str-key)
-             str-key not-found))
-         (let [kw-key (keyword key)]
-           (if (contains? map kw-key)
-             kw-key not-found))))))
-
-(defn get-fuzzy
-  "Given a map and a key, gets the value out of the map, trying various
-   permitted combinations of the key. Key can be either a keyword or string,
-   and is tried first as it is, before being converted to the other."
-  ([map key]
-     (get-fuzzy map key nil))
-  ([map key not-found]
-     (or (get map key)
-         (get map (keyword key))
-         (get map (name key))
-         not-found)))
-
-(defn assoc-fuzzy
-  "Just like clojure.core/assoc, except considers keys that are keywords and
-   strings equivalent. That is, if you assoc :keyword into a map with a key
-   \"keyword\", the latter is replaced."
-  ([map key val]
-     (let [found-key (contains-fuzzy? map key key)]
-       (assoc map found-key val)))
-  ([map key val & kvs]
-     (let [new-map (assoc-fuzzy map key val)]
-       (if kvs
-         (recur new-map (first kvs) (second kvs) (nnext kvs))
-         new-map))))
-
-(defn dissoc-fuzzy
-  "Given a map and key(s), returns a map without the mappings for the keys,
-   allowing for the keys to be certain combinations (ie, string/keyword are
-   equivalent)."
-  ([map] map)
-  ([map key]
-     (if-let [found-key (contains-fuzzy? map key)]
-       (dissoc map found-key)))
-  ([map key & ks]
-     (let [new-map (dissoc-fuzzy map key)]
-       (if ks
-         (recur new-map (first ks) (next ks))
-         new-map))))
+  (:require [clojure.string :as str]
+            [quoin.map-access :as map]))
 
 ;;
 ;; Context stack access logic
@@ -107,14 +11,15 @@
 ;;
 
 (defn find-containing-context
-  "Given a context stack and a key, walks down the context stack until it
-   finds a context that contains the key. The key logic is fuzzy as in
-   get-fuzzy/contains-fuzzy?. Returns the context, not the key's value,
-   so nil when no context is found that contains the key."
+  "Given a context stack and a key, walks down the context stack until
+   it finds a context that contains the key. The key logic is fuzzy as
+   in get-named/contains-named? in quoin. Returns the context, not the
+   key's value, so nil when no context is found that contains the
+   key."
   [context-stack key]
   (loop [curr-context-stack context-stack]
     (if-let [context-top (peek curr-context-stack)]
-      (if (contains-fuzzy? context-top key)
+      (if (map/contains-named? context-top key)
         context-top
         ;; Didn't have the key, so walk down the stack.
         (recur (next curr-context-stack)))
@@ -141,12 +46,12 @@
          ;; key left, we repeat the process using only the matching context as
          ;; the context stack.
          (if (next key)
-           (recur (list (get-fuzzy matching-context
-                                   (first key))) ;; Singleton ctx stack.
+           (recur (list (map/get-named matching-context
+                                       (first key))) ;; Singleton ctx stack.
                   (next key)
                   not-found)
            ;; Otherwise, we found the item!
-           (get-fuzzy matching-context (first key)))
+           (map/get-named matching-context (first key)))
          ;; Didn't find a matching context.
          not-found))))
 

@@ -3,6 +3,7 @@
   (:use [clojure.java.io :only [resource]]
         [stencil.parser :exclude [partial]]
         [stencil.ast :exclude [partial]]
+        [quoin.text :as qtext]
         stencil.utils)
   (:require [clojure.core.cache :as cache]))
 
@@ -155,7 +156,9 @@
   (render [this sb context-stack]
     (let [padding (:padding this)
           template (if padding
-                     (load (:name this) padding #(indent-string % padding))
+                     (load (:name this)
+                           padding
+                           #(qtext/indent-string % padding))
                      (load (:name this)))]
       (when template
         (render template sb context-stack)))))
