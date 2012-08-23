@@ -1,4 +1,4 @@
-(defproject stencil "0.3.1-SNAPSHOT"
+(defproject stencil "0.3.1"
   :description "Mustache in Clojure"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [scout "0.1.0"]
