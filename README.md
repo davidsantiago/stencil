@@ -148,6 +148,9 @@ it as soon as possible.
 
 ## Recently
 
+* Released version 0.3.1.
+  - Update version of core.cache to one that fixes bugs.
+
 * Released version 0.3.0. 
   - Performance improvements (Thanks YourKit!).
   - Keywords are now preferred over strings in contexts.
