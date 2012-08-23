@@ -6,5 +6,5 @@ lib
 classes
 build
 /stencil
-test/spec
+/target
 .lein-*
