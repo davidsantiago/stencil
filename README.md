@@ -11,7 +11,7 @@ lambdas.
 
 The unit tests for Stencil will automatically pull down the spec
 files using git and run the tests against the current implementation (If you
-want to do this yourself, you can clone the repo and type `cake test`).
+want to do this yourself, you can clone the repo and type `lein test`).
 Currently, all spec tests are passing.
 
 To learn about the language itself, you should read the language
