@@ -136,7 +136,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Simply add
 
-    [stencil "0.3.0"]
+    [stencil "0.3.1"]
 
 to the `:dependencies` key of your project.clj.
 
