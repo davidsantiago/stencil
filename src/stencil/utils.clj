@@ -19,7 +19,7 @@
   [context-stack key]
   (loop [curr-context-stack context-stack]
     (if-let [context-top (peek curr-context-stack)]
-      (if (map/contains-named? context-top key)
+      (if (and (associative? context-top) (map/contains-named? context-top key))
         context-top
         ;; Didn't have the key, so walk down the stack.
         (recur (next curr-context-stack)))
@@ -60,7 +60,7 @@
    any. The content arg is the content of the tag being processed as a lambda in
    the template, and the context arg is the current context at this point in the
    processing. The latter will be ignored unless metadata directs otherwise.
- 
+
    Respected metadata:
      - :stencil/pass-context: passes the current context to the lambda as the
        second arg."
