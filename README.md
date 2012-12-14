@@ -92,6 +92,11 @@ protocol from core.cache. In particular, during development, you might
 want to use a TTL cache with a very low TTL parameter, so that
 templates are reloaded as soon as you modify them.
 
+Following code can be used for development:
+    (require '[stencil.loader :as sl])
+    (require '[clojure.core.cache :as cache])
+    (sl/set-cache (cache/ttl-cache-factory {} :ttl 1000))
+
 You can also work at an even lower-level, manually caching templates using the
 `cache` function and the functions related to accessing the cache, then
 calling `render` yourself. You should read the source for a better idea of
