@@ -87,3 +87,10 @@
   (is (= []
            (zip/root (:output (parse-tag
                                (parser (scanner "   {{!blah}}\r\n"))))))))
+
+(deftest test-set-delimiter-parse
+  (is (= [] (parse "{{= blah blah=}}")))
+  (is (= ["hi"] (parse "{{= blah blah =}}hi")))
+  (is (thrown? Exception (parse "{{= name}}y")))
+  (is (thrown? Exception (parse "{{= name }} y")))
+  (is (thrown? Exception (parse "{{= name =}}y"))))
