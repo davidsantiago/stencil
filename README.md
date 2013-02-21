@@ -90,7 +90,9 @@ manually using the function `set-cache` from the `stencil.loader`
 namespace; pass it some object that implements the `CacheProtocol`
 protocol from core.cache. In particular, during development, you might
 want to use a TTL cache with a very low TTL parameter, so that
-templates are reloaded as soon as you modify them.
+templates are reloaded as soon as you modify them. For example:
+
+    (stencil.loader/set-cache (clojure.core.cache/ttl-cache-factory {} :ttl 0))
 
 You can also work at an even lower-level, manually caching templates using the
 `cache` function and the functions related to accessing the cache, then
