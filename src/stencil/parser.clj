@@ -300,9 +300,18 @@
           \= (let [[tag-open tag-close]
                    (drop 1 (re-matches #"([\S|[^=]]+)\s+([\S|[^=]]+)"
                                        tag-content))]
-               (parser scanner
-                       output
-                       (assoc state :tag-open tag-open :tag-close tag-close)))
+               (if (or (nil? tag-open) (nil? tag-close))
+                 (throw+ {:type :invalid-set-delimiters-tag
+                          :tag-content tag-content
+                          :scanner tag-content-scanner}
+                         (str "Invalid set delimiters command: "
+                              tag-content
+                              " at "
+                              (format-location tag-content-scanner)))
+                 (parser scanner
+                         output
+                         (assoc state :tag-open tag-open
+                                :tag-close tag-close))))
           ;; No sigil: it was an escaped variable reference.
           (parser scanner
                   (zip/append-child output
