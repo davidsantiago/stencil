@@ -19,7 +19,8 @@
   [context-stack key]
   (loop [curr-context-stack context-stack]
     (if-let [context-top (peek curr-context-stack)]
-      (if (map/contains-named? context-top key)
+      (if (and (associative? context-top)
+               (map/contains-named? context-top key))
         context-top
         ;; Didn't have the key, so walk down the stack.
         (recur (next curr-context-stack)))
