@@ -138,7 +138,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Simply add
 
-    [stencil "0.3.0"]
+    [stencil "0.3.2"]
 
 to the `:dependencies` key of your project.clj.
 
@@ -149,6 +149,10 @@ probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
 
 ## Recently
+
+* Released version 0.3.2.
+  - Fixed a problem causing an infinite loop when attempting to parse a malformed set-delimiter tag.
+  - Updated code to work with Clojure 1.5. (Thanks to @bmabey).
 
 * Released version 0.3.1.
   - Update version of core.cache to one that fixes bugs.
