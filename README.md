@@ -99,6 +99,26 @@ You can also work at an even lower-level, manually caching templates using the
 calling `render` yourself. You should read the source for a better idea of
 how to do that.
 
+#### Core.Cache Optional Mode (Experts only!)
+
+You can also run Stencil without the core.cache dependency present. If
+you don't have a really good reason for doing this, you almost
+certainly don't want to do it! It's not a great idea, and it doesn't
+provide any performance improvements or other benefits. It's actually
+all drawbacks and degradations. Nonetheless, there are unlikely
+scenarios where you might need to use Stencil this way to get by.
+
+If you still think this is for you, you need to call
+`stencil.loader/set-cache` with a "cache-like object" before you
+attempt to use any Stencil functions, or you will get an error on any
+use attempts. A plain map will work. Be aware, though, that if your
+cache-like object is not actually a cache (ie, doesn't evict entries
+once it reaches a size threshold of some sort), then it's quite
+possible that this object will simply grow larger and larger in memory
+over time without end, depending on how your code uses templates. Some
+apps could get by in this situation (a command line app that runs once
+and exits immediately, for example), while others might not.
+
 ### Manual Template Management
 
 Sometimes it can be useful to refer to a template by name, even though that
