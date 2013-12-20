@@ -158,7 +158,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Simply add
 
-    [stencil "0.3.2"]
+    [stencil "0.3.3"]
 
 to the `:dependencies` key of your project.clj.
 
@@ -169,6 +169,9 @@ probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
 
 ## Recently
+
+* Released version 0.3.3.
+  - It's now possible to run Stencil without core.cache. It's still probably not a good idea (see above).
 
 * Released version 0.3.2.
   - Fixed a problem causing an infinite loop when attempting to parse a malformed set-delimiter tag.
