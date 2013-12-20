@@ -1,6 +1,7 @@
 (ns stencil.utils
   (:require [clojure.string :as str]
-            [quoin.map-access :as map]))
+            [quoin.map-access :as map])
+  (:import [java.io FileNotFoundException]))
 
 ;;
 ;; Context stack access logic
@@ -73,3 +74,12 @@
       (if (:stencil/pass-context (meta lambda-fn))
         (lambda-fn content context)
         (lambda-fn content))))
+
+(defn core-cache-present?
+  "Returns true if the core.cache library is available, and false otherwise."
+  []
+  (try
+    (require 'clojure.core.cache)
+    true
+    (catch FileNotFoundException _
+      false)))

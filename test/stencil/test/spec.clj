@@ -4,7 +4,9 @@
         [stencil.loader :exclude [load]])
   (:require [clojure.data.json :as json]
             [clojure.java.shell :as sh]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [stencil.utils :as utils])
+  (:import [java.io FileNotFoundException]))
 
 (def repo-url "https://github.com/mustache/spec.git")
 (def spec-dir "target/test/spec")
@@ -72,6 +74,12 @@
                           (render-string ~template data#)) ~desc))))))))
 
 (pull-spec-if-missing)
+
+;; We support a mode where core.cache is not present, so the tests should
+;; also handle this case gracefully. When it is not present, we want to
+;; ensure that the tests work with a map instead of a cache.
+(when (not (utils/core-cache-present?))
+  (set-cache {}))
 
 (doseq [spec (spec-json)]
   (tests-from-spec (read-spec-file spec)))
