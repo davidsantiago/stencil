@@ -1,17 +1,50 @@
 (ns stencil.loader
   (:refer-clojure :exclude [load])
   (:use [clojure.java.io :only [resource]]
+        [slingshot.slingshot :only [throw+]]
         [stencil.parser :exclude [partial]]
         [stencil.ast :exclude [partial]]
         [quoin.text :as qtext]
         stencil.utils)
-  (:require [clojure.core.cache :as cache]))
+  (:import [java.io FileNotFoundException]))
+
+;;
+;; Support for operation without core.cache. We can't just
+;; error out when core.cache isn't present, so we default to
+;; an object that prints an informative error whenever it is
+;; used.
+;;
+
+(def ^{:private true} no-core-cache-msg
+  "Could not load core.cache. To use Stencil without core.cache, you must first use set-cache to provide a map(-like object) to use as a cache, and consult the readme to make sure you fully understand the ramifications of running Stencil this way.")
+
+(deftype CoreCacheUnavailableStub_SeeReadme []
+  clojure.lang.ILookup
+  (valAt [this key] (throw+ no-core-cache-msg))
+  (valAt [this key notFound] (throw+ no-core-cache-msg))
+  clojure.lang.IPersistentCollection
+  (count [this] (throw+ no-core-cache-msg))
+  (cons [this o] (throw+ no-core-cache-msg))
+  (empty [this] (throw+ no-core-cache-msg))
+  (equiv [this o] (throw+ no-core-cache-msg))
+  clojure.lang.Seqable
+  (seq [this] (throw+ no-core-cache-msg))
+  clojure.lang.Associative
+  (containsKey [this key] (throw+ no-core-cache-msg))
+  (entryAt [this key] (throw+ no-core-cache-msg))
+  (assoc [this key val] (throw+ no-core-cache-msg)))
 
 ;; The dynamic template store just maps a template name to its source code.
 (def ^{:private true} dynamic-template-store (atom {}))
 
 ;; The parsed template cache maps a template name to its parsed versions.
-(def ^{:private true} parsed-template-cache (atom (cache/lru-cache-factory {})))
+(def ^{:private true} parsed-template-cache
+  (atom (try
+          (require 'clojure.core.cache)
+          ((resolve 'clojure.core.cache/lru-cache-factory) {})
+          (catch FileNotFoundException _
+            (CoreCacheUnavailableStub_SeeReadme.)))))
+
 
 ;; Holds a cache entry
 (defrecord TemplateCacheEntry [src          ;; The source code of the template
