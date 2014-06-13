@@ -29,6 +29,11 @@
       ;; unsuccessful in finding the key.
       nil)))
 
+(defn get-named
+  "Fixed version of quoin's get-named which doesn't get confused on nils values."
+  [map key]
+  (get map (map/contains-named? map key)))
+
 (defn context-get
   "Given a context stack and key, implements the rules for getting the
    key out of the context stack (see interpolation.yml in the spec). The
@@ -48,12 +53,12 @@
          ;; key left, we repeat the process using only the matching context as
          ;; the context stack.
          (if (next key)
-           (recur (list (map/get-named matching-context
-                                       (first key))) ;; Singleton ctx stack.
+           (recur (list (get-named matching-context
+                                   (first key))) ;; Singleton ctx stack.
                   (next key)
                   not-found)
            ;; Otherwise, we found the item!
-           (map/get-named matching-context (first key)))
+           (get-named matching-context (first key)))
          ;; Didn't find a matching context.
          not-found))))
 
