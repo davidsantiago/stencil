@@ -10,3 +10,9 @@
          (render-string "{{^a}}a{{b}}a{{/a}}" {:a [:b "11"]})))
   (is (= ""
          (render-string "{{^a}}a{{b}}a{{/a}}" {"a" ["b" "11"]}))))
+
+(deftest test-keywords-take-precedence-over-string-keys
+  (is (= ""
+         (render-string "{{a}}" {:a nil "a" "bar"})))
+  (is (= "foo"
+         (render-string "{{a}}" {:a "foo" "a" "bar"}))))
