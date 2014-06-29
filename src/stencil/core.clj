@@ -47,23 +47,27 @@
             (node-render (:contents this) sb (conj context-stack ctx-val)))))
   stencil.ast.EscapedVariable
   (render [this ^StringBuilder sb context-stack]
-    (if-let [value (context-get context-stack (:name this))]
-      (if (instance? clojure.lang.Fn value)
-        (.append sb (qtext/html-escape
-                     (render-string (str (call-lambda value
-                                                      (first context-stack)))
-                                    (first context-stack))))
-        ;; Otherwise, just append its html-escaped value by default.
-        (.append sb (qtext/html-escape (str value))))))
+    (let [value (context-get context-stack (:name this))]
+      ;; Need to explicitly check for nilness so we render boolean false.
+      (if (not (nil? value))
+        (if (instance? clojure.lang.Fn value)
+          (.append sb (qtext/html-escape
+                       (render-string (str (call-lambda value
+                                                        (first context-stack)))
+                                      (first context-stack))))
+          ;; Otherwise, just append its html-escaped value by default.
+          (.append sb (qtext/html-escape (str value)))))))
   stencil.ast.UnescapedVariable
   (render [this ^StringBuilder sb context-stack]
-    (if-let [value (context-get context-stack (:name this))]
-      (if (instance? clojure.lang.Fn value)
-        (.append sb (render-string (str (call-lambda value
-                                                     (first context-stack)))
-                                   (first context-stack)))
-        ;; Otherwise, just append its value.
-        (.append sb value)))))
+    (let [value (context-get context-stack (:name this))]
+      ;; Need to explicitly check for nilness so we render boolean false.
+      (if (not (nil? value))
+        (if (instance? clojure.lang.Fn value)
+          (.append sb (render-string (str (call-lambda value
+                                                       (first context-stack)))
+                                     (first context-stack)))
+          ;; Otherwise, just append its value.
+          (.append sb value))))))
 
 (defn render
   "Given a parsed template (output of load or parse) and map of args,
