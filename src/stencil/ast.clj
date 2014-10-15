@@ -17,9 +17,11 @@
                               the existing children, make the new node."))
 
 (defprotocol ASTNode
-  (render [this ^StringBuilder sb context-stack]
+  (render [this ^StringBuilder sb context-stack opts]
     "Given a StringBuilder and the current context-stack, render this node to
-     the result string in the StringBuilder."))
+     the result string in the StringBuilder.
+     Options supported:
+     :replace-missing-vars - true/false"))
 
 ;; Section and InvertedSection need to keep track of the raw source code of
 ;; their contents, since lambdas need access to that. The attrs field lets them
@@ -44,7 +46,7 @@
   (children [this] contents)
   (make-node [this children] (InvertedSection. name attrs (vec children)))
   ASTNode
-  (render [this sb context-stack]
+  (render [this sb context-stack opts]
     ;; Only render the section if the value is not present, false, or
     ;; an empty list.
     (let [ctx (first context-stack)
@@ -54,7 +56,7 @@
                (or (not ctx-val)
                    (and (sequential? ctx-val)
                         (empty? ctx-val))))
-        (render contents sb context-stack)))))
+        (render contents sb context-stack opts)))))
 (defn inverted-section [name attrs contents]
   (InvertedSection. name attrs contents))
 
@@ -105,11 +107,11 @@
 
 (extend-protocol ASTNode
   java.lang.String
-  (render [this ^StringBuilder sb context-stack] (.append sb this))
+  (render [this ^StringBuilder sb context-stack opts] (.append sb this))
   clojure.lang.PersistentVector
-  (render [this sb context-stack]
+  (render [this sb context-stack opts]
     (dotimes [i (count this)]
-      (render (nth this i) sb context-stack))))
+      (render (nth this i) sb context-stack opts))))
 
 ;; Implement a Zipper over ASTZippers.
 

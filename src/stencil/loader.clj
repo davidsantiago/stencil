@@ -186,7 +186,7 @@
 ;; ASTNode for Partial here.
 (extend-protocol ASTNode
   stencil.ast.Partial
-  (render [this sb context-stack]
+  (render [this sb context-stack opts]
     (let [padding (:padding this)
           template (if padding
                      (load (:name this)
@@ -194,4 +194,4 @@
                            #(qtext/indent-string % padding))
                      (load (:name this)))]
       (when template
-        (render template sb context-stack)))))
+        (render template sb context-stack opts)))))

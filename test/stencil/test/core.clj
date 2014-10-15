@@ -16,3 +16,10 @@
 (deftest boolean-false-print-test
   (is (= "false" (render-string "{{a}}" {:a false})))
   (is (= "false" (render-string "{{{a}}}" {:a false}))))
+
+;; Configure behavior for "missing" vars
+
+(deftest configure-missing-vars-test
+  (let [test-string "Hello, {{world}}!"]
+    (is (= "Hello, !" (render-string test-string {}))) ;; default behavior
+    (is (= test-string (render-string test-string {} :replace-missing-vars false)))))
