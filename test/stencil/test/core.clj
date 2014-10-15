@@ -16,3 +16,11 @@
 (deftest boolean-false-print-test
   (is (= "false" (render-string "{{a}}" {:a false})))
   (is (= "false" (render-string "{{{a}}}" {:a false}))))
+
+;; Test case to make sure we can lookup by index
+
+(deftest index-lookup-test
+  (is (= "5" (render-string "{{a.0}}" {:a [5]})))
+  (is (= "23" (render-string "{{a.0.b}}" {:a [{:b 23}]})))
+  (is (= "42" (render-string "{{{a.0.b}}}" {:a {"0" {:b 42}}}))))
+

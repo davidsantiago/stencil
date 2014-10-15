@@ -11,6 +11,18 @@
 ;; way to make them go faster.
 ;;
 
+(defn key-to-idx
+  "Transforms an internal key representation into an index for array-like access"
+  [k]
+  (try (Integer/parseInt (name k)) (catch Exception e nil)))
+
+(defn template-get
+  "lookup a value in a context (either assoc or sequential)"
+  [ctx k]
+  (if (sequential? ctx)
+   (nth ctx (key-to-idx k))
+   (map/get-named ctx k)))
+
 (defn find-containing-context
   "Given a context stack and a key, walks down the context stack until
    it finds a context that contains the key. The key logic is fuzzy as
@@ -20,9 +32,12 @@
   [context-stack key]
   (loop [curr-context-stack context-stack]
     (if-let [context-top (peek curr-context-stack)]
-      (if (and (associative? context-top)
-               (map/contains-named? context-top key))
-        context-top
+      (cond
+        (and (associative? context-top)
+             (map/contains-named? context-top key)) context-top
+        (and (sequential? context-top)
+             (contains? context-top (key-to-idx key))) context-top
+        :else
         ;; Didn't have the key, so walk down the stack.
         (recur (next curr-context-stack)))
       ;; Either ran out of context stack or key, in either case, we were
@@ -48,12 +63,11 @@
          ;; key left, we repeat the process using only the matching context as
          ;; the context stack.
          (if (next key)
-           (recur (list (map/get-named matching-context
-                                       (first key))) ;; Singleton ctx stack.
-                  (next key)
-                  not-found)
+           (let [k (first key)
+                 next-context (template-get matching-context k)]
+             (recur (list next-context) (next key) not-found))
            ;; Otherwise, we found the item!
-           (map/get-named matching-context (first key)))
+           (template-get matching-context (first key)))
          ;; Didn't find a matching context.
          not-found))))
 
