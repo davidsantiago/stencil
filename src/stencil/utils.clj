@@ -36,7 +36,7 @@
         (and (associative? context-top)
              (map/contains-named? context-top key)) context-top
         (and (sequential? context-top)
-             (contains? context-top (key-to-idx key))) context-top
+             (> (count context-top) (key-to-idx key))) context-top
         :else
         ;; Didn't have the key, so walk down the stack.
         (recur (next curr-context-stack)))
