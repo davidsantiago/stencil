@@ -21,5 +21,6 @@
 
 (deftest configure-missing-vars-test
   (let [test-string "Hello, {{world}}!"]
-    (is (= "Hello, !" (render-string test-string {}))) ;; default behavior
-    (is (= test-string (render-string test-string {} :replace-missing-vars false)))))
+    (is (= "Hello, David!" (render-string test-string {} :missing-var-fn (constantly "David"))))
+    (is (= test-string (render-string test-string {} :missing-var-fn :ignore)))
+    (is (thrown? Exception (render-string test-string {} :missing-var-fn :throw)))))

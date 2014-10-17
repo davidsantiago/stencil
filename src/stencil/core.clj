@@ -48,8 +48,7 @@
             (node-render (:contents this) sb (conj context-stack ctx-val) opts))))
   stencil.ast.EscapedVariable
   (render [this ^StringBuilder sb context-stack opts]
-    (let [cursor (:name this)
-          value (context-get context-stack cursor)]
+    (let [value (context-get context-stack (:name this))]
       ;; Need to explicitly check for nilness so we render boolean false.
       (if (not (nil? value))
         (if (instance? clojure.lang.Fn value)
@@ -59,11 +58,10 @@
                                       (first context-stack))))
           ;; Otherwise, just append its html-escaped value by default.
           (.append sb (qtext/html-escape (str value))))
-        (.append sb (missing-string cursor opts)))))
+        (.append sb ((:missing-var-fn opts) this :escaped)))))
   stencil.ast.UnescapedVariable
   (render [this ^StringBuilder sb context-stack opts]
-    (let [cursor (:name this)
-          value (context-get context-stack cursor)]
+    (let [value (context-get context-stack (:name this))]
       ;; Need to explicitly check for nilness so we render boolean false.
       (if (not (nil? value))
         (if (instance? clojure.lang.Fn value)
@@ -72,16 +70,27 @@
                                      (first context-stack)))
           ;; Otherwise, just append its value.
           (.append sb value))
-        (.append sb (missing-string cursor (assoc opts :classifier ::unescaped)))))))
+        (.append sb ((:missing-var-fn opts) this :unescaped))))))
 
-(defn missing-string
-  "Determine what to return in the case of a missing replacement variable"
-  [cursor {:keys [replace-missing-vars classifier] :as opts
-           :or {replace-missing-vars true classifier ""}}]
-  (if replace-missing-vars ""
-    (let [var (->> (map name cursor) (clojure.string/join "."))
-          classifier (if (= classifier ::unescaped) "& " classifier)]
-      (str "{{" classifier var "}}"))))
+(defn var-name
+  [node var-type]
+  (let [var (->> (:name node) (map name) (clojure.string/join "."))
+        var-token (if (= var-type :unescaped) "& " "")]
+    (str "{{" var-token var "}}")))
+
+(defn throw-missing-var
+  [node var-type]
+  (let [var (var-name node var-type)]
+    (throw (Exception. (str "Unable to replace missing var: " var)))))
+
+(defn opt-defaults [{:keys [missing-var-fn] :as opts}]
+  (let [missing-var-fn (case missing-var-fn
+                         :ignore var-name
+                         :throw throw-missing-var
+                         nil (constantly "")
+                         missing-var-fn)]
+    (assoc opts
+      :missing-var-fn missing-var-fn)))
 
 (defn render
   "Given a parsed template (output of load or parse) and map of args,
@@ -89,7 +98,7 @@
   [template data-map opts]
   (let [sb (StringBuilder.)
         context-stack (conj '() data-map)]
-    (node-render template sb context-stack opts)
+    (node-render template sb context-stack (opt-defaults opts))
     (.toString sb)))
 
 (defn render-file

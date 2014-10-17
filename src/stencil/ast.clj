@@ -21,7 +21,10 @@
     "Given a StringBuilder and the current context-stack, render this node to
      the result string in the StringBuilder.
      Options supported:
-     :replace-missing-vars - true/false"))
+     :missing-var-fn - A function to render context misses. Will be
+                       provided the current node and var type
+                       can use :throw to raise an exception, and
+                       :ignore to leave the template string intact"))
 
 ;; Section and InvertedSection need to keep track of the raw source code of
 ;; their contents, since lambdas need access to that. The attrs field lets them
