@@ -21,10 +21,12 @@ focus on the API that Stencil provides.
 Like Mustache itself, the interface is very simple, consisting of two main
 functions that will probably do most of what you want.
 
-    (use 'stencil.core)
-    (render-string "Hi there, {{name}}."
-                   {:name "Donald"})
-    "Hi there, Donald."
+```clojure
+(use 'stencil.core)
+(render-string "Hi there, {{name}}."
+               {:name "Donald"})
+"Hi there, Donald."
+```
 
 The easiest way to render a small template is using the function
 `render-string`, which takes two arguments, a string containing the text of
@@ -37,9 +39,11 @@ Clojure, but not all valid Mustache keys can be made into
 keywords. Rather than force strings, Stencil lets you use whichever
 will work better for you).
 
-    (render-string "Hi there, {{name}}."
-                   {"name" "Dick" :name "Donald"})
-    "Hi there, Donald."
+```clojure
+(render-string "Hi there, {{name}}."
+               {"name" "Dick" :name "Donald"})
+"Hi there, Donald."
+```
 
 For a larger template, holding onto it and passing it in as a string is
 neither the most convenient nor the fastest option. Most commonly, Mustache
@@ -47,9 +51,11 @@ templates are placed into their own files, ending in ".mustache", and put on
 the app's classpath somewhere. In this case, the `render-file` function can
 be used to open the file by its name and render it.
 
-    (render-file "hithere"
-                 {:name "Donald"})
-    "Hi there, Donald."
+```clojure
+(render-file "hithere"
+             {:name "Donald"})
+"Hi there, Donald."
+```
 
 The `render-file` function, given "hithere" as its first argument, will look
 in the classpath for "hithere.mustache". If that is not found, it looks for
@@ -69,9 +75,11 @@ name and return the parsed AST out of cache if possible, and if not, it will
 load and parse it. The AST returned from `load` can then be rendered with
 the function `render`.
 
-    (use 'stencil.loader)
-    (render (load "hithere") {:name "Donald"})
-    "Hi there, Donald."
+```clojure
+(use 'stencil.loader)
+(render (load "hithere") {:name "Donald"})
+"Hi there, Donald."
+```
 
 At an even lower level, you can manually generate the AST used in rendering
 using the function `parse` from the `stencil.parser` namespace. Of course,
@@ -92,7 +100,9 @@ protocol from core.cache. In particular, during development, you might
 want to use a TTL cache with a very low TTL parameter, so that
 templates are reloaded as soon as you modify them. For example:
 
-    (stencil.loader/set-cache (clojure.core.cache/ttl-cache-factory {} :ttl 0))
+```clojure
+(stencil.loader/set-cache (clojure.core.cache/ttl-cache-factory {} :ttl 0))
+```
 
 You can also work at an even lower-level, manually caching templates using the
 `cache` function and the functions related to accessing the cache, then
@@ -127,10 +137,12 @@ register the template's source with Stencil, and later when you refer to that
 template by its name, Stencil will check first to see if it is one that you
 have manually registered, before checking the filesystem for it.
 
-    (use 'stencil.loader)
-    (register-template "hithere" "Hi there, {{name}}.")
-    (render-file "hithere" {:name "Donald"})
-    "Hi there, Donald."
+```clojure
+(use 'stencil.loader)
+(register-template "hithere" "Hi there, {{name}}.")
+(render-file "hithere" {:name "Donald"})
+"Hi there, Donald."
+```
 
 ## Performance
 
@@ -158,7 +170,9 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Simply add
 
-    [stencil "0.3.4"]
+```clojure
+[stencil "0.3.4"]
+```
 
 to the `:dependencies` key of your project.clj.
 
