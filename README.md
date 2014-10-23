@@ -158,7 +158,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Simply add
 
-    [stencil "0.3.4"]
+    [stencil "0.3.5"]
 
 to the `:dependencies` key of your project.clj.
 
@@ -169,6 +169,9 @@ probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
 
 ## Recently
+
+* Released version 0.3.5.
+  - Fixes a bug in the code that handles running without core.cache.
 
 * Released version 0.3.4.
   - Fixed output for boolean interpolations.
