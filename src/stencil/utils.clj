@@ -81,5 +81,7 @@
   (try
     (require 'clojure.core.cache)
     true
+    (catch ExceptionInInitializerError _
+      false)
     (catch FileNotFoundException _
       false)))

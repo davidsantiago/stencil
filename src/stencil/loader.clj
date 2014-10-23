@@ -42,6 +42,8 @@
   (atom (try
           (require 'clojure.core.cache)
           ((resolve 'clojure.core.cache/lru-cache-factory) {})
+          (catch ExceptionInInitializerError _
+            (CoreCacheUnavailableStub_SeeReadme.))
           (catch FileNotFoundException _
             (CoreCacheUnavailableStub_SeeReadme.)))))
 
