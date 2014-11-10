@@ -10,6 +10,7 @@
 
 (declare render)
 (declare render-string)
+(declare missing-string)
 
 ;; This is stupid. Clojure can't do circular dependencies between namespaces
 ;; at all. Some types need access to render/render-string to do what they are
@@ -20,7 +21,7 @@
 
 (extend-protocol ASTNode
   stencil.ast.Section
-  (render [this ^StringBuilder sb context-stack]
+  (render [this ^StringBuilder sb context-stack opts]
     (let [ctx-val (context-get context-stack (:name this))]
       (cond (or (not ctx-val) ;; "False" or the empty list -> do nothing.
                 (and (sequential? ctx-val)
@@ -30,7 +31,7 @@
             (sequential? ctx-val)
             (doseq [val ctx-val]
               ;; For each render, push the value to top of context stack.
-              (node-render (:contents this) sb (conj context-stack val)))
+              (node-render (:contents this) sb (conj context-stack val) opts))
             ;; Callable value -> Invoke it with the literal block of src text.
             (instance? clojure.lang.Fn ctx-val)
             (let [current-context (first context-stack)
@@ -41,12 +42,12 @@
               (.append sb (render (parse lambda-return
                                          (select-keys (:attrs this)
                                                       [:tag-open :tag-close]))
-                                         current-context)))
+                                         current-context opts)))
             ;; Non-false non-list value -> Display content once.
             :else
-            (node-render (:contents this) sb (conj context-stack ctx-val)))))
+            (node-render (:contents this) sb (conj context-stack ctx-val) opts))))
   stencil.ast.EscapedVariable
-  (render [this ^StringBuilder sb context-stack]
+  (render [this ^StringBuilder sb context-stack opts]
     (let [value (context-get context-stack (:name this))]
       ;; Need to explicitly check for nilness so we render boolean false.
       (if (not (nil? value))
@@ -56,9 +57,10 @@
                                                         (first context-stack)))
                                       (first context-stack))))
           ;; Otherwise, just append its html-escaped value by default.
-          (.append sb (qtext/html-escape (str value)))))))
+          (.append sb (qtext/html-escape (str value))))
+        (.append sb ((:missing-var-fn opts) this :escaped)))))
   stencil.ast.UnescapedVariable
-  (render [this ^StringBuilder sb context-stack]
+  (render [this ^StringBuilder sb context-stack opts]
     (let [value (context-get context-stack (:name this))]
       ;; Need to explicitly check for nilness so we render boolean false.
       (if (not (nil? value))
@@ -67,26 +69,46 @@
                                                        (first context-stack)))
                                      (first context-stack)))
           ;; Otherwise, just append its value.
-          (.append sb value))))))
+          (.append sb value))
+        (.append sb ((:missing-var-fn opts) this :unescaped))))))
+
+(defn var-name
+  [node var-type]
+  (let [var (->> (:name node) (map name) (clojure.string/join "."))
+        var-token (if (= var-type :unescaped) "& " "")]
+    (str "{{" var-token var "}}")))
+
+(defn throw-missing-var
+  [node var-type]
+  (let [var (var-name node var-type)]
+    (throw (Exception. (str "Unable to replace missing var: " var)))))
+
+(defn opt-defaults [{:keys [missing-var-fn] :as opts}]
+  (let [missing-var-fn (case missing-var-fn
+                         :ignore var-name
+                         :throw throw-missing-var
+                         nil (constantly "")
+                         missing-var-fn)]
+    (assoc opts
+      :missing-var-fn missing-var-fn)))
 
 (defn render
   "Given a parsed template (output of load or parse) and map of args,
    renders the template."
-  [template data-map]
+  [template data-map opts]
   (let [sb (StringBuilder.)
         context-stack (conj '() data-map)]
-    (node-render template sb context-stack)
+    (node-render template sb context-stack (opt-defaults opts))
     (.toString sb)))
 
 (defn render-file
   "Given a template name (string) and map of args, loads and renders the named
    template."
-  [template-name data-map]
-  (render (loader/load template-name) data-map))
+  [template-name data-map & {:as opts}]
+  (render (loader/load template-name) data-map opts))
 
 (defn render-string
   "Renders a given string containing the source of a template and a map
    of args."
-  [template-src data-map]
-  (render (parse template-src) data-map))
-
+  [template-src data-map & {:as opts}]
+  (render (parse template-src) data-map opts))
