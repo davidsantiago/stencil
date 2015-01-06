@@ -23,11 +23,15 @@
   (render [this ^StringBuilder sb context-stack]
     (let [ctx-val (context-get context-stack (:name this))]
       (cond (or (not ctx-val) ;; "False" or the empty list -> do nothing.
-                (and (sequential? ctx-val)
+                (and (or
+                      (sequential? ctx-val)
+                      (set? ctx-val))
                      (empty? ctx-val)))
             nil
             ;; Non-empty list -> Display content once for each item in list.
-            (sequential? ctx-val)
+            (or
+             (sequential? ctx-val)
+             (set? ctx-val))
             (doseq [val ctx-val]
               ;; For each render, push the value to top of context stack.
               (node-render (:contents this) sb (conj context-stack val)))
@@ -89,4 +93,3 @@
    of args."
   [template-src data-map]
   (render (parse template-src) data-map))
-
