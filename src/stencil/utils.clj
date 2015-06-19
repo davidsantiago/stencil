@@ -62,18 +62,35 @@
    any. The content arg is the content of the tag being processed as a lambda in
    the template, and the context arg is the current context at this point in the
    processing. The latter will be ignored unless metadata directs otherwise.
- 
+
    Respected metadata:
      - :stencil/pass-context: passes the current context to the lambda as the
-       second arg."
-  ([lambda-fn context]
-     (if (:stencil/pass-context (meta lambda-fn))
-       (lambda-fn context)
-       (lambda-fn)))
-  ([lambda-fn content context]
-      (if (:stencil/pass-context (meta lambda-fn))
-        (lambda-fn content context)
-        (lambda-fn content))))
+       second arg.
+
+     - :stencil/pass-render: the lambda will receive the context
+       and the render function to be used in this context, respecting
+       custom section delimiters"
+  ([lambda-fn context render]
+   (cond
+     (:stencil/pass-render (meta lambda-fn))
+     (str (lambda-fn context render))
+
+     (:stencil/pass-context (meta lambda-fn))
+     (render (str (lambda-fn context)) context)
+
+     :else
+     (render (str (lambda-fn)) context)))
+
+  ([lambda-fn context render content]
+   (cond
+     (:stencil/pass-render (meta lambda-fn))
+     (str (lambda-fn content context render))
+
+     (:stencil/pass-context (meta lambda-fn))
+     (render (str (lambda-fn content context)) context)
+
+     :else
+     (render (str (lambda-fn content)) context))))
 
 (defn core-cache-present?
   "Returns true if the core.cache library is available, and false otherwise."
