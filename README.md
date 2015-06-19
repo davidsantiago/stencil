@@ -158,7 +158,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Simply add
 
-    [stencil "0.3.5"]
+    [stencil "0.4.0"]
 
 to the `:dependencies` key of your project.clj.
 
@@ -169,6 +169,16 @@ probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
 
 ## Recently
+
+* Released version 0.4.0.
+  - Lambdas that have `:stencil/pass-render` true in their metadata
+    will be called with the render function as an explicit arg, in
+    addition to the current context. This allows the lambda to have
+    control of whether and when to pass the lambda's output through
+    the full stencil rendering process. Careful use of this feature
+    can enable performance improvements, but use with caution because
+    it allows deviations from the usual rendering process. Thanks to
+    [Max Penet](https://github.com/mpenet).
 
 * Released version 0.3.5.
   - Fixes a bug in the code that handles running without core.cache.

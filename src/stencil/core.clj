@@ -33,15 +33,17 @@
               (node-render (:contents this) sb (conj context-stack val)))
             ;; Callable value -> Invoke it with the literal block of src text.
             (instance? clojure.lang.Fn ctx-val)
-            (let [current-context (first context-stack)
-                  lambda-return (call-lambda ctx-val (:content (:attrs this))
-                                             current-context)]
+            (let [current-context (first context-stack)]
               ;; We have to manually parse because the spec says lambdas in
               ;; sections get parsed with the current parser delimiters.
-              (.append sb (render (parse lambda-return
-                                         (select-keys (:attrs this)
-                                                      [:tag-open :tag-close]))
-                                         current-context)))
+              (.append sb (call-lambda ctx-val
+                                       current-context
+                                       (fn [tmpl ctx]
+                                         (render (parse tmpl
+                                                        (select-keys (:attrs this)
+                                                                     [:tag-open :tag-close]))
+                                                 ctx))
+                                       (:content (:attrs this)))))
             ;; Non-false non-list value -> Display content once.
             :else
             (node-render (:contents this) sb (conj context-stack ctx-val)))))
@@ -52,9 +54,9 @@
       (if (not (nil? value))
         (if (instance? clojure.lang.Fn value)
           (.append sb (qtext/html-escape
-                       (render-string (str (call-lambda value
-                                                        (first context-stack)))
-                                      (first context-stack))))
+                       (call-lambda value
+                                    (first context-stack)
+                                    render-string)))
           ;; Otherwise, just append its html-escaped value by default.
           (.append sb (qtext/html-escape (str value)))))))
   stencil.ast.UnescapedVariable
@@ -63,9 +65,9 @@
       ;; Need to explicitly check for nilness so we render boolean false.
       (if (not (nil? value))
         (if (instance? clojure.lang.Fn value)
-          (.append sb (render-string (str (call-lambda value
-                                                       (first context-stack)))
-                                     (first context-stack)))
+          (.append sb (call-lambda value
+                                   (first context-stack)
+                                   render-string))
           ;; Otherwise, just append its value.
           (.append sb value))))))
 
@@ -89,4 +91,3 @@
    of args."
   [template-src data-map]
   (render (parse template-src) data-map))
-

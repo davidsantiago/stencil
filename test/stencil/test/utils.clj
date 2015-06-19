@@ -1,6 +1,7 @@
 (ns stencil.test.utils
   (:use clojure.test
-        stencil.utils))
+        stencil.utils
+        stencil.core))
 
 (deftest test-find-containing-context
   (is (= {:a 1}
@@ -25,12 +26,40 @@
                       ["a" "b"] "failure"))))
 
 (deftest test-pass-context
-  (is (= "foo" (call-lambda (fn [] "foo") nil)))
+  (is (= "foo" (call-lambda (fn [] "foo") nil render-string)))
   (is (= "foo*bar" (call-lambda ^{:stencil/pass-context true}
                                 (fn [ctx] (str "foo*" (:addition ctx)))
-                                {:addition "bar"})))
-  (is (= "foo*" (call-lambda (fn [x] (str x "*")) "foo" nil)))
+                                {:addition "bar"}
+                                render-string)))
+  (is (= "foo*" (call-lambda (fn [x] (str x "*"))
+                             nil
+                             render-string
+                             "foo")))
   (is (= "foo*bar"
          (call-lambda ^{:stencil/pass-context true}
                       (fn [x ctx] (str x "*" (:second-arg ctx)))
-                      "foo" {:second-arg "bar"}))))
+                      {:second-arg "bar"}
+                      render-string
+                      "foo"))))
+
+(deftest test-pass-render
+  (is (= "{{foo}}*bar" (call-lambda ^{:stencil/pass-render true}
+                                    (fn [ctx render] (str "{{foo}}*" (:addition ctx)))
+                                    {:addition "bar"}
+                                    render-string)))
+  (is (= "{{baz}}" (call-lambda ^{:stencil/pass-render true}
+                                (fn [content ctx render]
+                                  content)
+                                nil
+                                render-string
+                                "{{baz}}")))
+  (is (= "baz*" (call-lambda ^{:stencil/pass-render true}
+                             (fn [content ctx render]
+                               (render content ctx))
+                             {:baz "baz*"}
+                             render-string
+                             "{{baz}}")))
+  (is (= "bar" (call-lambda ^{:stencil/pass-render true}
+                            (fn [ctx render] (render "{{addition}}" ctx))
+                            {:addition "bar"}
+                            render-string))))
