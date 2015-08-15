@@ -1,7 +1,6 @@
 (ns stencil.loader
   (:refer-clojure :exclude [load])
   (:use [clojure.java.io :only [resource]]
-        [slingshot.slingshot :only [throw+]]
         [stencil.parser :exclude [partial]]
         [stencil.ast :exclude [partial]]
         [quoin.text :as qtext]
@@ -18,21 +17,24 @@
 (def ^{:private true} no-core-cache-msg
   "Could not load core.cache. To use Stencil without core.cache, you must first use set-cache to provide a map(-like object) to use as a cache, and consult the readme to make sure you fully understand the ramifications of running Stencil this way.")
 
+(defn- no-core-cache-ex []
+  (Exception. no-core-cache-msg))
+
 (deftype CoreCacheUnavailableStub_SeeReadme []
   clojure.lang.ILookup
-  (valAt [this key] (throw+ no-core-cache-msg))
-  (valAt [this key notFound] (throw+ no-core-cache-msg))
+  (valAt [this key] (throw (no-core-cache-ex)))
+  (valAt [this key notFound] (throw (no-core-cache-ex)))
   clojure.lang.IPersistentCollection
-  (count [this] (throw+ no-core-cache-msg))
-  (cons [this o] (throw+ no-core-cache-msg))
-  (empty [this] (throw+ no-core-cache-msg))
-  (equiv [this o] (throw+ no-core-cache-msg))
+  (count [this] (throw (no-core-cache-ex)))
+  (cons [this o] (throw (no-core-cache-ex)))
+  (empty [this] (throw (no-core-cache-ex)))
+  (equiv [this o] (throw (no-core-cache-ex)))
   clojure.lang.Seqable
-  (seq [this] (throw+ no-core-cache-msg))
+  (seq [this] (throw (no-core-cache-ex)))
   clojure.lang.Associative
-  (containsKey [this key] (throw+ no-core-cache-msg))
-  (entryAt [this key] (throw+ no-core-cache-msg))
-  (assoc [this key val] (throw+ no-core-cache-msg)))
+  (containsKey [this key] (throw (no-core-cache-ex)))
+  (entryAt [this key] (throw (no-core-cache-ex)))
+  (assoc [this key val] (throw (no-core-cache-ex))))
 
 ;; The dynamic template store just maps a template name to its source code.
 (def ^{:private true} dynamic-template-store (atom {}))
