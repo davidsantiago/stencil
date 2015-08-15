@@ -1,4 +1,4 @@
-(defproject stencil "0.4.1-SNAPSHOT"
+(defproject stencil "0.5.0"
   :description "Mustache in Clojure"
   :url "https://github.com/davidsantiago/stencil"
   :dependencies [[org.clojure/clojure "1.6.0"]
