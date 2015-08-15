@@ -158,7 +158,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Simply add
 
-    [stencil "0.4.0"]
+    [stencil "0.5.0"]
 
 to the `:dependencies` key of your project.clj.
 
@@ -169,6 +169,12 @@ probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
 
 ## Recently
+
+* Released version 0.5.0.
+  - Removed the dependency on slingshot, in favor of Clojure's built-in
+    ex-info. ex-info was added in Clojure 1.4, so Stencil versions higher
+    than 0.5.0 will require Clojure 1.4 or later. Thanks to 
+    [Ryan Wilson](https://github.com/rwilson).
 
 * Released version 0.4.0.
   - Lambdas that have `:stencil/pass-render` true in their metadata
