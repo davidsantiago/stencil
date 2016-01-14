@@ -69,28 +69,41 @@
 
      - :stencil/pass-render: the lambda will receive the context
        and the render function to be used in this context, respecting
-       custom section delimiters"
-  ([lambda-fn context render]
-   (cond
-     (:stencil/pass-render (meta lambda-fn))
-     (str (lambda-fn context render))
+       custom section delimiters
 
-     (:stencil/pass-context (meta lambda-fn))
-     (render (str (lambda-fn context)) context)
+     - :stencil/pass-context-stack: the lambda will receive the complete
+       context stack and the render function to be used."
+  ([lambda-fn context-stack render]
+   (let [context (first context-stack)
+         metadata (meta lambda-fn)]
+     (cond
+       (:stencil/pass-context-stack metadata)
+       (str (lambda-fn context-stack render))
 
-     :else
-     (render (str (lambda-fn)) context)))
+       (:stencil/pass-render metadata)
+       (str (lambda-fn context render))
 
-  ([lambda-fn context render content]
-   (cond
-     (:stencil/pass-render (meta lambda-fn))
-     (str (lambda-fn content context render))
+       (:stencil/pass-context metadata)
+       (render (str (lambda-fn context)) context-stack)
 
-     (:stencil/pass-context (meta lambda-fn))
-     (render (str (lambda-fn content context)) context)
+       :else
+       (render (str (lambda-fn)) context))))
 
-     :else
-     (render (str (lambda-fn content)) context))))
+  ([lambda-fn context-stack render content]
+   (let [context (first context-stack)
+         metadata (meta lambda-fn)]
+     (cond
+       (:stencil/pass-context-stack metadata)
+       (str (lambda-fn content context-stack render))
+
+       (:stencil/pass-render metadata)
+       (str (lambda-fn content context render))
+
+       (:stencil/pass-context metadata)
+       (render (str (lambda-fn content context)) context-stack)
+
+       :else
+       (render (str (lambda-fn content)) context)))))
 
 (defn core-cache-present?
   "Returns true if the core.cache library is available, and false otherwise."

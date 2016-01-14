@@ -29,7 +29,7 @@
   (is (= "foo" (call-lambda (fn [] "foo") nil render-string)))
   (is (= "foo*bar" (call-lambda ^{:stencil/pass-context true}
                                 (fn [ctx] (str "foo*" (:addition ctx)))
-                                {:addition "bar"}
+                                '({:addition "bar"})
                                 render-string)))
   (is (= "foo*" (call-lambda (fn [x] (str x "*"))
                              nil
@@ -38,17 +38,17 @@
   (is (= "foo*bar"
          (call-lambda ^{:stencil/pass-context true}
                       (fn [x ctx] (str x "*" (:second-arg ctx)))
-                      {:second-arg "bar"}
+                      '({:second-arg "bar"})
                       render-string
                       "foo"))))
 
 (deftest test-pass-render
   (is (= "{{foo}}*bar" (call-lambda ^{:stencil/pass-render true}
-                                    (fn [ctx render] (str "{{foo}}*" (:addition ctx)))
-                                    {:addition "bar"}
+                                    (fn [ctx _] (str "{{foo}}*" (:addition ctx)))
+                                    '({:addition "bar"})
                                     render-string)))
   (is (= "{{baz}}" (call-lambda ^{:stencil/pass-render true}
-                                (fn [content ctx render]
+                                (fn [content _ _]
                                   content)
                                 nil
                                 render-string
@@ -56,10 +56,21 @@
   (is (= "baz*" (call-lambda ^{:stencil/pass-render true}
                              (fn [content ctx render]
                                (render content ctx))
-                             {:baz "baz*"}
+                             '({:baz "baz*"})
                              render-string
                              "{{baz}}")))
   (is (= "bar" (call-lambda ^{:stencil/pass-render true}
                             (fn [ctx render] (render "{{addition}}" ctx))
-                            {:addition "bar"}
+                            '({:addition "bar"})
                             render-string))))
+
+(deftest test-pass-context-stack
+  (is (= "ITEM: FOO" (call-lambda ^{:stencil/pass-context-stack true}
+                         (fn [text context render]
+                           (clojure.string/upper-case
+                             (render text context)))
+                         '({:text "foo"}
+                            {:history [{:text "foo"} {:text "bar"}]
+                             :prefix "item:"})
+                         render-string
+                         "{{prefix}} {{text}}"))))
