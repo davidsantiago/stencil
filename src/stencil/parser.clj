@@ -228,15 +228,6 @@
                                        (let [form (str "(" tag-content)]
                                          (section (parse-tag-name "evaluate")
                                                   (assoc state :content form)
-                                                  #_{
-                                                     :content form
-                                                     :content-start (scan/position (if strip-whitespace?
-                                                                                     tag-position-scanner
-                                                                                     padding-scanner))
-                                                     :content-end (scan/position
-                                                                    (if strip-whitespace?
-                                                                      trailing-newline-scanner
-                                                                      close-scanner))}
                                                   form)))
                      state)
           \# (parser scanner
