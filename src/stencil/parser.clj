@@ -18,7 +18,7 @@
 (def standalone-tag-sigils #{\# \^ \/ \< \> \= \!})
 
 ;; These tags will allow anything in their content.
-(def freeform-tag-sigils #{\! \=})
+(def freeform-tag-sigils #{\! \= \(})
 
 (defn closing-sigil
   "Given a sigil (char), returns what its closing sigil could possibly be."
@@ -165,7 +165,7 @@
                                      (re-quote (:tag-open state)))
         ;; Identify the sigil (and then eat any whitespace).
         sigil-scanner (scan/scan tag-start-scanner
-                                 #"#|\^|\/|=|!|<|>|&|\{")
+                                 #"#|\^|\/|=|!|<|>|&|\{|\(")
         sigil (first (scan/matched sigil-scanner)) ;; first gets the char.
         sigil-scanner (scan/scan sigil-scanner #"\s*")
         ;; Scan the tag content, taking into account the content allowed by
@@ -223,6 +223,22 @@
                                             (unescaped-variable
                                              (parse-tag-name tag-content)))
                           state)
+          \( (parser scanner
+                     (zip/append-child output
+                                       (let [form (str "(" tag-content)]
+                                         (section (parse-tag-name "evaluate")
+                                                  (assoc state :content form)
+                                                  #_{
+                                                     :content form
+                                                     :content-start (scan/position (if strip-whitespace?
+                                                                                     tag-position-scanner
+                                                                                     padding-scanner))
+                                                     :content-end (scan/position
+                                                                    (if strip-whitespace?
+                                                                      trailing-newline-scanner
+                                                                      close-scanner))}
+                                                  form)))
+                     state)
           \# (parser scanner
                      (-> output
                          (zip/append-child

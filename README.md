@@ -60,6 +60,29 @@ An important advantage that `render-file` has over `render-string` is that
 the former will cache the results of parsing the file, and reuse the parsed
 AST on subsequent renders, greatly improving the speed.
 
+In Mustache, a Lambda can be invoked like so:
+
+    (render-string "How now {{#f}}cow{{#f}}"
+                   {:f (fn [text] (str "brown " text))})
+    "How now brown cow"
+
+Stencil provides a custom evaluation syntax:
+
+    {{(some text)}}
+
+which is shorthand for:
+
+    {{#evaluate}}(some text){{/evaluate}}
+
+This allows for concise Lambda invokation:
+
+    (render-string "Hello now {{(cow)}}"
+                   {:evaluate (fn [text] (str "brown " text))})
+    "How now brown (cow)"
+
+The parenthesis are preserved in the text so that the text may be read with
+`edn/read-string`.
+
 ## Lower Level APIs
 
 You can also manage things at a much lower level, if you prefer. In the
@@ -169,6 +192,11 @@ probably are some. If you run into anything, please let me know so I can fix
 it as soon as possible.
 
 ## Recently
+
+* Pending version 0.6.0.
+  - Adds a shortcut syntax for a Lambda `{{(some text)}}`
+    that will call a function in the context named `:evaluate`.
+    Thanks to [Timothy Pratley](https://github.com/timothypratley).
 
 * Released version 0.5.0.
   - Removed the dependency on slingshot, in favor of Clojure's built-in
